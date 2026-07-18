@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen' | 'nvidia';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -27,12 +27,13 @@ export interface ApiKeys {
   ollama_cloud?: string;
   opencode_go?: string;
   opencode_zen?: string;
+  nvidia?: string;
 }
 
 export interface ModelDefinition {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen' | 'nvidia';
   modelName: string;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -145,6 +146,13 @@ export const modelDefinitions: ModelDefinition[] = [
     modelName: '',
     supportsStrictMode: true,
   },
+  {
+    id: 'nvidia',
+    name: 'NVIDIA',
+    provider: 'nvidia',
+    modelName: '',
+    supportsStrictMode: true,
+  },
 ];
 
 export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKeys): ModelConfig | null {
@@ -235,6 +243,17 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
       model = client.chatModel(definition.modelName);
       break;
     }
+    case 'nvidia': {
+      const key = apiKeys.nvidia || process.env.NVIDIA_API_KEY;
+      if (!key) return null;
+      const client = createOpenAICompatible({
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+        name: 'nvidia',
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      model = client.chatModel(definition.modelName);
+      break;
+    }
     default:
       return null;
   }
@@ -312,5 +331,9 @@ export const providers = {
   opencode_zen: {
     name: 'OpenCode Zen',
     color: '#be185d',
+  },
+  nvidia: {
+    name: 'NVIDIA',
+    color: '#76b900',
   },
 } as const;

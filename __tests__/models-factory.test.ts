@@ -281,3 +281,56 @@ describe('Model Factory - OpenCode Zen', () => {
     });
   });
 });
+
+describe('Model Factory - NVIDIA', () => {
+  describe('modelDefinitions', () => {
+    it('should contain an NVIDIA entry', () => {
+      const def = modelDefinitions.find(m => m.provider === 'nvidia');
+      expect(def).toBeDefined();
+      expect(def!.id).toBe('nvidia');
+      expect(def!.name).toBe('NVIDIA');
+      expect(def!.supportsStrictMode).toBe(true);
+    });
+  });
+
+  describe('createModelWithKeys', () => {
+    it('should create an NVIDIA model config with API key', () => {
+      const def = getModelDefinition('nvidia');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, { nvidia: 'test-key' });
+      expect(config).not.toBeNull();
+      expect(config!.id).toBe('nvidia');
+      expect(config!.provider).toBe('nvidia');
+      expect(config!.supportsStrictMode).toBe(true);
+    });
+
+    it('should return null without API key', () => {
+      const def = getModelDefinition('nvidia');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, {});
+      expect(config).toBeNull();
+    });
+  });
+
+  describe('getModelWithKeys', () => {
+    it('should return null without API key', () => {
+      const model = getModelWithKeys('nvidia', {});
+      expect(model).toBeNull();
+    });
+
+    it('should return model with API key', () => {
+      const model = getModelWithKeys('nvidia', { nvidia: 'test-key' });
+      expect(model).not.toBeNull();
+      expect(model!.provider).toBe('nvidia');
+    });
+  });
+
+  describe('providers', () => {
+    it('should include NVIDIA metadata', () => {
+      expect(providers.nvidia).toEqual({
+        name: 'NVIDIA',
+        color: '#76b900',
+      });
+    });
+  });
+});

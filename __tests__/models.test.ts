@@ -22,7 +22,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(15);
+      expect(models).toHaveLength(16);
     });
 
     it('should have models from all providers', () => {
@@ -41,6 +41,7 @@ describe('Model Configuration', () => {
       expect(providerCounts.ollama_cloud).toBe(1);
       expect(providerCounts.opencode_go).toBe(1);
       expect(providerCounts.opencode_zen).toBe(1);
+      expect(providerCounts.nvidia).toBe(1);
     });
 
     it('should contain an LM Studio model', () => {
@@ -73,7 +74,7 @@ describe('Model Configuration', () => {
 
         expect(typeof model.id).toBe('string');
         expect(typeof model.name).toBe('string');
-        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local', 'ollama_cloud', 'opencode_go', 'opencode_zen']).toContain(model.provider);
+        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local', 'ollama_cloud', 'opencode_go', 'opencode_zen', 'nvidia']).toContain(model.provider);
         expect(typeof model.supportsStrictMode).toBe('boolean');
       });
     });
@@ -110,6 +111,13 @@ describe('Model Configuration', () => {
       expect(zen).toBeDefined();
       expect(zen!.id).toBe('opencode-zen');
       expect(zen!.supportsStrictMode).toBe(true);
+    });
+
+    it('should contain an NVIDIA model', () => {
+      const nv = models.find(m => m.provider === 'nvidia');
+      expect(nv).toBeDefined();
+      expect(nv!.id).toBe('nvidia');
+      expect(nv!.supportsStrictMode).toBe(true);
     });
   });
 
@@ -203,6 +211,10 @@ describe('Model Configuration', () => {
       expect(providers.opencode_zen).toEqual({
         name: 'OpenCode Zen',
         color: '#be185d',
+      });
+      expect(providers.nvidia).toEqual({
+        name: 'NVIDIA',
+        color: '#76b900',
       });
     });
   });
@@ -299,6 +311,16 @@ describe('Model Configuration', () => {
       expect(zenModels).toHaveLength(1);
       zenModels.forEach((model) => {
         expect(model.provider).toBe('opencode_zen');
+      });
+    });
+  });
+
+  describe('getModelsByProvider for NVIDIA', () => {
+    it('should return models for NVIDIA', () => {
+      const nvModels = getModelsByProvider('nvidia');
+      expect(nvModels).toHaveLength(1);
+      nvModels.forEach((model) => {
+        expect(model.provider).toBe('nvidia');
       });
     });
   });
