@@ -122,3 +122,56 @@ describe('Model Factory - Ollama Local', () => {
     });
   });
 });
+
+describe('Model Factory - Ollama Cloud', () => {
+  describe('modelDefinitions', () => {
+    it('should contain an Ollama Cloud entry', () => {
+      const def = modelDefinitions.find(m => m.provider === 'ollama_cloud');
+      expect(def).toBeDefined();
+      expect(def!.id).toBe('ollama-cloud');
+      expect(def!.name).toBe('Ollama Cloud');
+      expect(def!.supportsStrictMode).toBe(false);
+    });
+  });
+
+  describe('createModelWithKeys', () => {
+    it('should create an Ollama Cloud model config with API key', () => {
+      const def = getModelDefinition('ollama-cloud');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, { ollama_cloud: 'test-key' });
+      expect(config).not.toBeNull();
+      expect(config!.id).toBe('ollama-cloud');
+      expect(config!.provider).toBe('ollama_cloud');
+      expect(config!.supportsStrictMode).toBe(false);
+    });
+
+    it('should return null without API key', () => {
+      const def = getModelDefinition('ollama-cloud');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, {});
+      expect(config).toBeNull();
+    });
+  });
+
+  describe('getModelWithKeys', () => {
+    it('should return null without API key', () => {
+      const model = getModelWithKeys('ollama-cloud', {});
+      expect(model).toBeNull();
+    });
+
+    it('should return model with API key', () => {
+      const model = getModelWithKeys('ollama-cloud', { ollama_cloud: 'test-key' });
+      expect(model).not.toBeNull();
+      expect(model!.provider).toBe('ollama_cloud');
+    });
+  });
+
+  describe('providers', () => {
+    it('should include Ollama Cloud metadata', () => {
+      expect(providers.ollama_cloud).toEqual({
+        name: 'Ollama Cloud',
+        color: '#9333ea',
+      });
+    });
+  });
+});

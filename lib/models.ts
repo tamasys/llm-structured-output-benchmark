@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -149,6 +149,24 @@ const ollamaLocalModels: ModelConfig[] = [
   },
 ];
 
+// Ollama Cloud models (requires API key)
+const ollamaCloudKey = process.env.OLLAMA_CLOUD_API_KEY;
+const ollamaCloud = createOllama(
+  ollamaCloudKey
+    ? { baseURL: 'https://ollama.com/api', headers: { Authorization: `Bearer ${ollamaCloudKey}` } }
+    : { baseURL: 'https://ollama.com/api' }
+);
+
+const ollamaCloudModels: ModelConfig[] = [
+  {
+    id: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    provider: 'ollama_cloud',
+    model: ollamaCloud.chat(''),
+    supportsStrictMode: false,
+  },
+];
+
 // All models
 export const models: ModelConfig[] = [
   ...openaiModels,
@@ -158,6 +176,7 @@ export const models: ModelConfig[] = [
   ...openrouterModels,
   ...lmStudioModels,
   ...ollamaLocalModels,
+  ...ollamaCloudModels,
 ];
 
 export type ModelId = typeof models[number]['id'];
@@ -166,7 +185,7 @@ export function getModel(id: string): ModelConfig | undefined {
   return models.find(m => m.id === id);
 }
 
-export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local'): ModelConfig[] {
+export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud'): ModelConfig[] {
   return models.filter(m => m.provider === provider);
 }
 
@@ -205,5 +224,9 @@ export const providers = {
   ollama_local: {
     name: 'Ollama (Local)',
     color: '#7c3aed',
+  },
+  ollama_cloud: {
+    name: 'Ollama Cloud',
+    color: '#9333ea',
   },
 } as const;

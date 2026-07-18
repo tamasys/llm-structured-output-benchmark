@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -24,12 +24,13 @@ export interface ApiKeys {
   openrouter?: string;
   lm_studio?: string;
   ollama_local?: string;
+  ollama_cloud?: string;
 }
 
 export interface ModelDefinition {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud';
   modelName: string;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -121,6 +122,13 @@ export const modelDefinitions: ModelDefinition[] = [
     modelName: '',
     supportsStrictMode: false,
   },
+  {
+    id: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    provider: 'ollama_cloud',
+    modelName: '',
+    supportsStrictMode: false,
+  },
 ];
 
 export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKeys): ModelConfig | null {
@@ -176,6 +184,16 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
     case 'ollama_local': {
       const baseURL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434/api';
       const client = createOllama({ baseURL });
+      model = client.chat(definition.modelName);
+      break;
+    }
+    case 'ollama_cloud': {
+      const key = apiKeys.ollama_cloud || process.env.OLLAMA_CLOUD_API_KEY;
+      if (!key) return null;
+      const client = createOllama({
+        baseURL: 'https://ollama.com/api',
+        headers: { Authorization: `Bearer ${key}` },
+      });
       model = client.chat(definition.modelName);
       break;
     }
@@ -244,5 +262,9 @@ export const providers = {
   ollama_local: {
     name: 'Ollama (Local)',
     color: '#7c3aed',
+  },
+  ollama_cloud: {
+    name: 'Ollama Cloud',
+    color: '#9333ea',
   },
 } as const;
