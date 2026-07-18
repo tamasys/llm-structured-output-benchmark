@@ -22,7 +22,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(11);
+      expect(models).toHaveLength(12);
     });
 
     it('should have models from all providers', () => {
@@ -37,6 +37,7 @@ describe('Model Configuration', () => {
       expect(providerCounts.groq).toBe(3);
       expect(providerCounts.openrouter).toBe(1);
       expect(providerCounts.lm_studio).toBe(1);
+      expect(providerCounts.ollama_local).toBe(1);
     });
 
     it('should contain an LM Studio model', () => {
@@ -50,7 +51,7 @@ describe('Model Configuration', () => {
       const nonStrictModeModels = models.filter(m => !m.supportsStrictMode);
 
       expect(strictModeModels.length).toBeGreaterThan(0);
-      expect(nonStrictModeModels.every(m => m.provider === 'groq' || m.provider === 'openrouter')).toBe(true);
+      expect(nonStrictModeModels.every(m => ['groq', 'openrouter', 'ollama_local'].includes(m.provider))).toBe(true);
     });
 
     it('should have unique model IDs', () => {
@@ -69,7 +70,7 @@ describe('Model Configuration', () => {
 
         expect(typeof model.id).toBe('string');
         expect(typeof model.name).toBe('string');
-        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio']).toContain(model.provider);
+        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local']).toContain(model.provider);
         expect(typeof model.supportsStrictMode).toBe('boolean');
       });
     });
@@ -78,6 +79,13 @@ describe('Model Configuration', () => {
       const lmStudio = models.find(m => m.provider === 'lm_studio');
       expect(lmStudio).toBeDefined();
       expect(lmStudio!.supportsStrictMode).toBe(true);
+    });
+
+    it('should contain an Ollama Local model', () => {
+      const ollama = models.find(m => m.provider === 'ollama_local');
+      expect(ollama).toBeDefined();
+      expect(ollama!.id).toBe('ollama-local');
+      expect(ollama!.supportsStrictMode).toBe(false);
     });
   });
 
@@ -156,6 +164,10 @@ describe('Model Configuration', () => {
         name: 'LM Studio',
         color: '#a0784a',
       });
+      expect(providers.ollama_local).toEqual({
+        name: 'Ollama (Local)',
+        color: '#7c3aed',
+      });
     });
   });
 
@@ -211,6 +223,16 @@ describe('Model Configuration', () => {
       expect(lmStudioModels).toHaveLength(1);
       lmStudioModels.forEach((model) => {
         expect(model.provider).toBe('lm_studio');
+      });
+    });
+  });
+
+  describe('getModelsByProvider for Ollama Local', () => {
+    it('should return models for Ollama Local', () => {
+      const ollamaModels = getModelsByProvider('ollama_local');
+      expect(ollamaModels).toHaveLength(1);
+      ollamaModels.forEach((model) => {
+        expect(model.provider).toBe('ollama_local');
       });
     });
   });

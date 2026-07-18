@@ -4,6 +4,13 @@ jest.mock('@ai-sdk/openai-compatible', () => ({
   })),
 }));
 
+jest.mock('ollama-ai-provider-v2', () => ({
+  createOllama: jest.fn(() => ({
+    chat: jest.fn(() => ({ id: 'ollama-model', provider: 'ollama_local' })),
+  })),
+  ollama: jest.fn(() => ({ id: 'ollama-model', provider: 'ollama_local' })),
+}));
+
 import {
   modelDefinitions,
   createModelWithKeys,
@@ -62,6 +69,55 @@ describe('Model Factory - LM Studio', () => {
       expect(providers.lm_studio).toEqual({
         name: 'LM Studio',
         color: '#a0784a',
+      });
+    });
+  });
+});
+
+describe('Model Factory - Ollama Local', () => {
+  describe('modelDefinitions', () => {
+    it('should contain an Ollama Local entry', () => {
+      const def = modelDefinitions.find(m => m.provider === 'ollama_local');
+      expect(def).toBeDefined();
+      expect(def!.id).toBe('ollama-local');
+      expect(def!.name).toBe('Ollama (Local)');
+      expect(def!.supportsStrictMode).toBe(false);
+    });
+  });
+
+  describe('createModelWithKeys', () => {
+    it('should create an Ollama Local model config without API key', () => {
+      const def = getModelDefinition('ollama-local');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, {});
+      expect(config).not.toBeNull();
+      expect(config!.id).toBe('ollama-local');
+      expect(config!.provider).toBe('ollama_local');
+      expect(config!.supportsStrictMode).toBe(false);
+    });
+  });
+
+  describe('getModelWithKeys', () => {
+    it('should return Ollama Local model by ID', () => {
+      const model = getModelWithKeys('ollama-local', {});
+      expect(model).not.toBeNull();
+      expect(model!.provider).toBe('ollama_local');
+    });
+  });
+
+  describe('getAvailableModels', () => {
+    it('should include Ollama Local', () => {
+      const available = getAvailableModels({});
+      const ollama = available.find(m => m.provider === 'ollama_local');
+      expect(ollama).toBeDefined();
+    });
+  });
+
+  describe('providers', () => {
+    it('should include Ollama Local metadata', () => {
+      expect(providers.ollama_local).toEqual({
+        name: 'Ollama (Local)',
+        color: '#7c3aed',
       });
     });
   });

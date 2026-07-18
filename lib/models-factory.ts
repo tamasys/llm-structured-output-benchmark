@@ -4,12 +4,13 @@ import { createGroq } from '@ai-sdk/groq';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOllama } from 'ollama-ai-provider-v2';
 import type { LanguageModel } from 'ai';
 
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -22,12 +23,13 @@ export interface ApiKeys {
   groq?: string;
   openrouter?: string;
   lm_studio?: string;
+  ollama_local?: string;
 }
 
 export interface ModelDefinition {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local';
   modelName: string;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -112,6 +114,13 @@ export const modelDefinitions: ModelDefinition[] = [
     modelName: '',
     supportsStrictMode: true,
   },
+  {
+    id: 'ollama-local',
+    name: 'Ollama (Local)',
+    provider: 'ollama_local',
+    modelName: '',
+    supportsStrictMode: false,
+  },
 ];
 
 export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKeys): ModelConfig | null {
@@ -162,6 +171,12 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
       const baseURL = process.env.LM_STUDIO_BASE_URL || 'http://localhost:1234/v1';
       const client = createOpenAICompatible({ baseURL, name: 'lm_studio' });
       model = client.chatModel(definition.modelName);
+      break;
+    }
+    case 'ollama_local': {
+      const baseURL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434/api';
+      const client = createOllama({ baseURL });
+      model = client.chat(definition.modelName);
       break;
     }
     default:
@@ -225,5 +240,9 @@ export const providers = {
   lm_studio: {
     name: 'LM Studio',
     color: '#a0784a',
+  },
+  ollama_local: {
+    name: 'Ollama (Local)',
+    color: '#7c3aed',
   },
 } as const;

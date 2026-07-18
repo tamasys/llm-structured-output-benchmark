@@ -4,12 +4,13 @@ import { createGroq } from '@ai-sdk/groq';
 import { openai } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOllama } from 'ollama-ai-provider-v2';
 import type { LanguageModel } from 'ai';
 
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -133,6 +134,21 @@ const lmStudioModels: ModelConfig[] = [
   },
 ];
 
+// Ollama Local models (local, no API key needed)
+const ollamaLocal = createOllama({
+  baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/api',
+});
+
+const ollamaLocalModels: ModelConfig[] = [
+  {
+    id: 'ollama-local',
+    name: 'Ollama (Local)',
+    provider: 'ollama_local',
+    model: ollamaLocal.chat(''),
+    supportsStrictMode: false,
+  },
+];
+
 // All models
 export const models: ModelConfig[] = [
   ...openaiModels,
@@ -141,6 +157,7 @@ export const models: ModelConfig[] = [
   ...groqModels,
   ...openrouterModels,
   ...lmStudioModels,
+  ...ollamaLocalModels,
 ];
 
 export type ModelId = typeof models[number]['id'];
@@ -149,7 +166,7 @@ export function getModel(id: string): ModelConfig | undefined {
   return models.find(m => m.id === id);
 }
 
-export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio'): ModelConfig[] {
+export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local'): ModelConfig[] {
   return models.filter(m => m.provider === provider);
 }
 
@@ -184,5 +201,9 @@ export const providers = {
   lm_studio: {
     name: 'LM Studio',
     color: '#a0784a',
+  },
+  ollama_local: {
+    name: 'Ollama (Local)',
+    color: '#7c3aed',
   },
 } as const;
