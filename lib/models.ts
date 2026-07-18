@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -167,6 +167,24 @@ const ollamaCloudModels: ModelConfig[] = [
   },
 ];
 
+// OpenCode Go models (requires OPENCODE_API_KEY)
+const opencodeKey = process.env.OPENCODE_API_KEY;
+const opencodeGo = createOpenAICompatible({
+  baseURL: 'https://opencode.ai/zen/go/v1',
+  name: 'opencode_go',
+  headers: opencodeKey ? { Authorization: `Bearer ${opencodeKey}` } : undefined,
+});
+
+const opencodeGoModels: ModelConfig[] = [
+  {
+    id: 'opencode-go',
+    name: 'OpenCode Go',
+    provider: 'opencode_go',
+    model: opencodeGo.chatModel(''),
+    supportsStrictMode: true,
+  },
+];
+
 // All models
 export const models: ModelConfig[] = [
   ...openaiModels,
@@ -177,6 +195,7 @@ export const models: ModelConfig[] = [
   ...lmStudioModels,
   ...ollamaLocalModels,
   ...ollamaCloudModels,
+  ...opencodeGoModels,
 ];
 
 export type ModelId = typeof models[number]['id'];
@@ -185,7 +204,7 @@ export function getModel(id: string): ModelConfig | undefined {
   return models.find(m => m.id === id);
 }
 
-export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud'): ModelConfig[] {
+export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go'): ModelConfig[] {
   return models.filter(m => m.provider === provider);
 }
 
@@ -228,5 +247,9 @@ export const providers = {
   ollama_cloud: {
     name: 'Ollama Cloud',
     color: '#9333ea',
+  },
+  opencode_go: {
+    name: 'OpenCode Go',
+    color: '#e11d48',
   },
 } as const;

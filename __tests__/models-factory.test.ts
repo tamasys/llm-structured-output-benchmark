@@ -175,3 +175,56 @@ describe('Model Factory - Ollama Cloud', () => {
     });
   });
 });
+
+describe('Model Factory - OpenCode Go', () => {
+  describe('modelDefinitions', () => {
+    it('should contain an OpenCode Go entry', () => {
+      const def = modelDefinitions.find(m => m.provider === 'opencode_go');
+      expect(def).toBeDefined();
+      expect(def!.id).toBe('opencode-go');
+      expect(def!.name).toBe('OpenCode Go');
+      expect(def!.supportsStrictMode).toBe(true);
+    });
+  });
+
+  describe('createModelWithKeys', () => {
+    it('should create an OpenCode Go model config with API key', () => {
+      const def = getModelDefinition('opencode-go');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, { opencode_go: 'test-key' });
+      expect(config).not.toBeNull();
+      expect(config!.id).toBe('opencode-go');
+      expect(config!.provider).toBe('opencode_go');
+      expect(config!.supportsStrictMode).toBe(true);
+    });
+
+    it('should return null without API key', () => {
+      const def = getModelDefinition('opencode-go');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, {});
+      expect(config).toBeNull();
+    });
+  });
+
+  describe('getModelWithKeys', () => {
+    it('should return null without API key', () => {
+      const model = getModelWithKeys('opencode-go', {});
+      expect(model).toBeNull();
+    });
+
+    it('should return model with API key', () => {
+      const model = getModelWithKeys('opencode-go', { opencode_go: 'test-key' });
+      expect(model).not.toBeNull();
+      expect(model!.provider).toBe('opencode_go');
+    });
+  });
+
+  describe('providers', () => {
+    it('should include OpenCode Go metadata', () => {
+      expect(providers.opencode_go).toEqual({
+        name: 'OpenCode Go',
+        color: '#e11d48',
+      });
+    });
+  });
+});

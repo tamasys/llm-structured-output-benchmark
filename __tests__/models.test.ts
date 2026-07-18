@@ -22,7 +22,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(13);
+      expect(models).toHaveLength(14);
     });
 
     it('should have models from all providers', () => {
@@ -39,6 +39,7 @@ describe('Model Configuration', () => {
       expect(providerCounts.lm_studio).toBe(1);
       expect(providerCounts.ollama_local).toBe(1);
       expect(providerCounts.ollama_cloud).toBe(1);
+      expect(providerCounts.opencode_go).toBe(1);
     });
 
     it('should contain an LM Studio model', () => {
@@ -71,7 +72,7 @@ describe('Model Configuration', () => {
 
         expect(typeof model.id).toBe('string');
         expect(typeof model.name).toBe('string');
-        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local', 'ollama_cloud']).toContain(model.provider);
+        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local', 'ollama_cloud', 'opencode_go']).toContain(model.provider);
         expect(typeof model.supportsStrictMode).toBe('boolean');
       });
     });
@@ -94,6 +95,13 @@ describe('Model Configuration', () => {
       expect(cloud).toBeDefined();
       expect(cloud!.id).toBe('ollama-cloud');
       expect(cloud!.supportsStrictMode).toBe(false);
+    });
+
+    it('should contain an OpenCode Go model', () => {
+      const go = models.find(m => m.provider === 'opencode_go');
+      expect(go).toBeDefined();
+      expect(go!.id).toBe('opencode-go');
+      expect(go!.supportsStrictMode).toBe(true);
     });
   });
 
@@ -180,6 +188,10 @@ describe('Model Configuration', () => {
         name: 'Ollama Cloud',
         color: '#9333ea',
       });
+      expect(providers.opencode_go).toEqual({
+        name: 'OpenCode Go',
+        color: '#e11d48',
+      });
     });
   });
 
@@ -255,6 +267,16 @@ describe('Model Configuration', () => {
       expect(cloudModels).toHaveLength(1);
       cloudModels.forEach((model) => {
         expect(model.provider).toBe('ollama_cloud');
+      });
+    });
+  });
+
+  describe('getModelsByProvider for OpenCode Go', () => {
+    it('should return models for OpenCode Go', () => {
+      const goModels = getModelsByProvider('opencode_go');
+      expect(goModels).toHaveLength(1);
+      goModels.forEach((model) => {
+        expect(model.provider).toBe('opencode_go');
       });
     });
   });

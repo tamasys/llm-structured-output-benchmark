@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -25,12 +25,13 @@ export interface ApiKeys {
   lm_studio?: string;
   ollama_local?: string;
   ollama_cloud?: string;
+  opencode_go?: string;
 }
 
 export interface ModelDefinition {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go';
   modelName: string;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -129,6 +130,13 @@ export const modelDefinitions: ModelDefinition[] = [
     modelName: '',
     supportsStrictMode: false,
   },
+  {
+    id: 'opencode-go',
+    name: 'OpenCode Go',
+    provider: 'opencode_go',
+    modelName: '',
+    supportsStrictMode: true,
+  },
 ];
 
 export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKeys): ModelConfig | null {
@@ -195,6 +203,17 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
         headers: { Authorization: `Bearer ${key}` },
       });
       model = client.chat(definition.modelName);
+      break;
+    }
+    case 'opencode_go': {
+      const key = apiKeys.opencode_go || process.env.OPENCODE_API_KEY;
+      if (!key) return null;
+      const client = createOpenAICompatible({
+        baseURL: 'https://opencode.ai/zen/go/v1',
+        name: 'opencode_go',
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      model = client.chatModel(definition.modelName);
       break;
     }
     default:
@@ -266,5 +285,9 @@ export const providers = {
   ollama_cloud: {
     name: 'Ollama Cloud',
     color: '#9333ea',
+  },
+  opencode_go: {
+    name: 'OpenCode Go',
+    color: '#e11d48',
   },
 } as const;
