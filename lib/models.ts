@@ -2,13 +2,14 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { openai } from '@ai-sdk/openai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import type { LanguageModel } from 'ai';
 
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -116,6 +117,22 @@ const openrouterModels: ModelConfig[] = [
   },
 ];
 
+// LM Studio models (local, no API key needed)
+const lmStudio = createOpenAICompatible({
+  baseURL: process.env.LM_STUDIO_BASE_URL || 'http://localhost:1234/v1',
+  name: 'lm_studio',
+});
+
+const lmStudioModels: ModelConfig[] = [
+  {
+    id: 'lm-studio',
+    name: 'LM Studio',
+    provider: 'lm_studio',
+    model: lmStudio.chatModel(''),
+    supportsStrictMode: true,
+  },
+];
+
 // All models
 export const models: ModelConfig[] = [
   ...openaiModels,
@@ -123,6 +140,7 @@ export const models: ModelConfig[] = [
   ...googleModels,
   ...groqModels,
   ...openrouterModels,
+  ...lmStudioModels,
 ];
 
 export type ModelId = typeof models[number]['id'];
@@ -131,7 +149,7 @@ export function getModel(id: string): ModelConfig | undefined {
   return models.find(m => m.id === id);
 }
 
-export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter'): ModelConfig[] {
+export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio'): ModelConfig[] {
   return models.filter(m => m.provider === provider);
 }
 
@@ -162,5 +180,9 @@ export const providers = {
   openrouter: {
     name: 'OpenRouter',
     color: '#6366f1',
+  },
+  lm_studio: {
+    name: 'LM Studio',
+    color: '#a0784a',
   },
 } as const;

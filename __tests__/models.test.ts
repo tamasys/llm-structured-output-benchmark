@@ -1,3 +1,16 @@
+// @ai-sdk/openai-compatible is ESM-only; other AI SDK packages are CJS
+jest.mock('@ai-sdk/openai-compatible', () => ({
+  createOpenAICompatible: jest.fn(() => ({
+    chatModel: jest.fn(() => ({ id: 'lm-studio-model', provider: 'lm_studio' })),
+  })),
+}));
+
+jest.mock('@ai-sdk/openai-compatible', () => ({
+  createOpenAICompatible: jest.fn(() => ({
+    chatModel: jest.fn(() => ({ id: 'lm-studio-model', provider: 'lm_studio' })),
+  })),
+}));
+
 import {
   models,
   getModel,
@@ -9,7 +22,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(10);
+      expect(models).toHaveLength(11);
     });
 
     it('should have models from all providers', () => {
@@ -23,6 +36,13 @@ describe('Model Configuration', () => {
       expect(providerCounts.google).toBe(2);
       expect(providerCounts.groq).toBe(3);
       expect(providerCounts.openrouter).toBe(1);
+      expect(providerCounts.lm_studio).toBe(1);
+    });
+
+    it('should contain an LM Studio model', () => {
+      const lmStudio = models.find(m => m.provider === 'lm_studio');
+      expect(lmStudio).toBeDefined();
+      expect(lmStudio!.id).toBe('lm-studio');
     });
 
     it('should have correct strict mode support', () => {
@@ -49,9 +69,15 @@ describe('Model Configuration', () => {
 
         expect(typeof model.id).toBe('string');
         expect(typeof model.name).toBe('string');
-        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter']).toContain(model.provider);
+        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio']).toContain(model.provider);
         expect(typeof model.supportsStrictMode).toBe('boolean');
       });
+    });
+
+    it('should have LM Studio model with strict mode support', () => {
+      const lmStudio = models.find(m => m.provider === 'lm_studio');
+      expect(lmStudio).toBeDefined();
+      expect(lmStudio!.supportsStrictMode).toBe(true);
     });
   });
 
@@ -126,6 +152,10 @@ describe('Model Configuration', () => {
         name: 'OpenRouter',
         color: '#6366f1',
       });
+      expect(providers.lm_studio).toEqual({
+        name: 'LM Studio',
+        color: '#a0784a',
+      });
     });
   });
 
@@ -171,6 +201,16 @@ describe('Model Configuration', () => {
       expect(groqModels).toHaveLength(3);
       groqModels.forEach((model) => {
         expect(model.provider).toBe('groq');
+      });
+    });
+  });
+
+  describe('getModelsByProvider for LM Studio', () => {
+    it('should return models for LM Studio', () => {
+      const lmStudioModels = getModelsByProvider('lm_studio');
+      expect(lmStudioModels).toHaveLength(1);
+      lmStudioModels.forEach((model) => {
+        expect(model.provider).toBe('lm_studio');
       });
     });
   });

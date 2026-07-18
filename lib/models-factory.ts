@@ -2,13 +2,14 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { createOpenAI } from '@ai-sdk/openai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import type { LanguageModel } from 'ai';
 
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -20,12 +21,13 @@ export interface ApiKeys {
   google?: string;
   groq?: string;
   openrouter?: string;
+  lm_studio?: string;
 }
 
 export interface ModelDefinition {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio';
   modelName: string;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -103,6 +105,13 @@ export const modelDefinitions: ModelDefinition[] = [
     modelName: 'qwen/qwen3-235b-a22b',
     supportsStrictMode: false,
   },
+  {
+    id: 'lm-studio',
+    name: 'LM Studio',
+    provider: 'lm_studio',
+    modelName: '',
+    supportsStrictMode: true,
+  },
 ];
 
 export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKeys): ModelConfig | null {
@@ -147,6 +156,12 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
       if (!key) return null;
       const client = createOpenRouter({ apiKey: key });
       model = client.chat(definition.modelName);
+      break;
+    }
+    case 'lm_studio': {
+      const baseURL = process.env.LM_STUDIO_BASE_URL || 'http://localhost:1234/v1';
+      const client = createOpenAICompatible({ baseURL, name: 'lm_studio' });
+      model = client.chatModel(definition.modelName);
       break;
     }
     default:
@@ -206,5 +221,9 @@ export const providers = {
   openrouter: {
     name: 'OpenRouter',
     color: '#6366f1',
+  },
+  lm_studio: {
+    name: 'LM Studio',
+    color: '#a0784a',
   },
 } as const;
