@@ -22,7 +22,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(14);
+      expect(models).toHaveLength(15);
     });
 
     it('should have models from all providers', () => {
@@ -40,6 +40,7 @@ describe('Model Configuration', () => {
       expect(providerCounts.ollama_local).toBe(1);
       expect(providerCounts.ollama_cloud).toBe(1);
       expect(providerCounts.opencode_go).toBe(1);
+      expect(providerCounts.opencode_zen).toBe(1);
     });
 
     it('should contain an LM Studio model', () => {
@@ -72,7 +73,7 @@ describe('Model Configuration', () => {
 
         expect(typeof model.id).toBe('string');
         expect(typeof model.name).toBe('string');
-        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local', 'ollama_cloud', 'opencode_go']).toContain(model.provider);
+        expect(['openai', 'anthropic', 'google', 'groq', 'openrouter', 'lm_studio', 'ollama_local', 'ollama_cloud', 'opencode_go', 'opencode_zen']).toContain(model.provider);
         expect(typeof model.supportsStrictMode).toBe('boolean');
       });
     });
@@ -102,6 +103,13 @@ describe('Model Configuration', () => {
       expect(go).toBeDefined();
       expect(go!.id).toBe('opencode-go');
       expect(go!.supportsStrictMode).toBe(true);
+    });
+
+    it('should contain an OpenCode Zen model', () => {
+      const zen = models.find(m => m.provider === 'opencode_zen');
+      expect(zen).toBeDefined();
+      expect(zen!.id).toBe('opencode-zen');
+      expect(zen!.supportsStrictMode).toBe(true);
     });
   });
 
@@ -192,6 +200,10 @@ describe('Model Configuration', () => {
         name: 'OpenCode Go',
         color: '#e11d48',
       });
+      expect(providers.opencode_zen).toEqual({
+        name: 'OpenCode Zen',
+        color: '#be185d',
+      });
     });
   });
 
@@ -277,6 +289,16 @@ describe('Model Configuration', () => {
       expect(goModels).toHaveLength(1);
       goModels.forEach((model) => {
         expect(model.provider).toBe('opencode_go');
+      });
+    });
+  });
+
+  describe('getModelsByProvider for OpenCode Zen', () => {
+    it('should return models for OpenCode Zen', () => {
+      const zenModels = getModelsByProvider('opencode_zen');
+      expect(zenModels).toHaveLength(1);
+      zenModels.forEach((model) => {
+        expect(model.provider).toBe('opencode_zen');
       });
     });
   });

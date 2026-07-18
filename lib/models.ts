@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -185,6 +185,23 @@ const opencodeGoModels: ModelConfig[] = [
   },
 ];
 
+// OpenCode Zen models (requires OPENCODE_API_KEY)
+const opencodeZen = createOpenAICompatible({
+  baseURL: 'https://opencode.ai/zen/v1',
+  name: 'opencode_zen',
+  headers: opencodeKey ? { Authorization: `Bearer ${opencodeKey}` } : undefined,
+});
+
+const opencodeZenModels: ModelConfig[] = [
+  {
+    id: 'opencode-zen',
+    name: 'OpenCode Zen',
+    provider: 'opencode_zen',
+    model: opencodeZen.chatModel(''),
+    supportsStrictMode: true,
+  },
+];
+
 // All models
 export const models: ModelConfig[] = [
   ...openaiModels,
@@ -196,6 +213,7 @@ export const models: ModelConfig[] = [
   ...ollamaLocalModels,
   ...ollamaCloudModels,
   ...opencodeGoModels,
+  ...opencodeZenModels,
 ];
 
 export type ModelId = typeof models[number]['id'];
@@ -204,7 +222,7 @@ export function getModel(id: string): ModelConfig | undefined {
   return models.find(m => m.id === id);
 }
 
-export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go'): ModelConfig[] {
+export function getModelsByProvider(provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen'): ModelConfig[] {
   return models.filter(m => m.provider === provider);
 }
 
@@ -251,5 +269,9 @@ export const providers = {
   opencode_go: {
     name: 'OpenCode Go',
     color: '#e11d48',
+  },
+  opencode_zen: {
+    name: 'OpenCode Zen',
+    color: '#be185d',
   },
 } as const;

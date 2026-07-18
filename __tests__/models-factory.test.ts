@@ -228,3 +228,56 @@ describe('Model Factory - OpenCode Go', () => {
     });
   });
 });
+
+describe('Model Factory - OpenCode Zen', () => {
+  describe('modelDefinitions', () => {
+    it('should contain an OpenCode Zen entry', () => {
+      const def = modelDefinitions.find(m => m.provider === 'opencode_zen');
+      expect(def).toBeDefined();
+      expect(def!.id).toBe('opencode-zen');
+      expect(def!.name).toBe('OpenCode Zen');
+      expect(def!.supportsStrictMode).toBe(true);
+    });
+  });
+
+  describe('createModelWithKeys', () => {
+    it('should create an OpenCode Zen model config with API key', () => {
+      const def = getModelDefinition('opencode-zen');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, { opencode_zen: 'test-key' });
+      expect(config).not.toBeNull();
+      expect(config!.id).toBe('opencode-zen');
+      expect(config!.provider).toBe('opencode_zen');
+      expect(config!.supportsStrictMode).toBe(true);
+    });
+
+    it('should return null without API key', () => {
+      const def = getModelDefinition('opencode-zen');
+      expect(def).toBeDefined();
+      const config = createModelWithKeys(def!, {});
+      expect(config).toBeNull();
+    });
+  });
+
+  describe('getModelWithKeys', () => {
+    it('should return null without API key', () => {
+      const model = getModelWithKeys('opencode-zen', {});
+      expect(model).toBeNull();
+    });
+
+    it('should return model with API key', () => {
+      const model = getModelWithKeys('opencode-zen', { opencode_zen: 'test-key' });
+      expect(model).not.toBeNull();
+      expect(model!.provider).toBe('opencode_zen');
+    });
+  });
+
+  describe('providers', () => {
+    it('should include OpenCode Zen metadata', () => {
+      expect(providers.opencode_zen).toEqual({
+        name: 'OpenCode Zen',
+        color: '#be185d',
+      });
+    });
+  });
+});

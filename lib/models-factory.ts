@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 export interface ModelConfig {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen';
   model: LanguageModel;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -26,12 +26,13 @@ export interface ApiKeys {
   ollama_local?: string;
   ollama_cloud?: string;
   opencode_go?: string;
+  opencode_zen?: string;
 }
 
 export interface ModelDefinition {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go';
+  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter' | 'lm_studio' | 'ollama_local' | 'ollama_cloud' | 'opencode_go' | 'opencode_zen';
   modelName: string;
   supportsStrictMode: boolean;
   isReasoningModel?: boolean;
@@ -137,6 +138,13 @@ export const modelDefinitions: ModelDefinition[] = [
     modelName: '',
     supportsStrictMode: true,
   },
+  {
+    id: 'opencode-zen',
+    name: 'OpenCode Zen',
+    provider: 'opencode_zen',
+    modelName: '',
+    supportsStrictMode: true,
+  },
 ];
 
 export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKeys): ModelConfig | null {
@@ -216,6 +224,17 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
       model = client.chatModel(definition.modelName);
       break;
     }
+    case 'opencode_zen': {
+      const key = apiKeys.opencode_zen || process.env.OPENCODE_API_KEY;
+      if (!key) return null;
+      const client = createOpenAICompatible({
+        baseURL: 'https://opencode.ai/zen/v1',
+        name: 'opencode_zen',
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      model = client.chatModel(definition.modelName);
+      break;
+    }
     default:
       return null;
   }
@@ -289,5 +308,9 @@ export const providers = {
   opencode_go: {
     name: 'OpenCode Go',
     color: '#e11d48',
+  },
+  opencode_zen: {
+    name: 'OpenCode Zen',
+    color: '#be185d',
   },
 } as const;
