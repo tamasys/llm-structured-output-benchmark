@@ -1,4 +1,6 @@
 import { registerTask, getTask, listTasks, clearTasks, type Task } from '../lib/task';
+import '../lib/tasks/hiring';
+import { hiringTask } from '../lib/tasks/hiring';
 
 describe('Task Registry', () => {
   beforeEach(() => {
@@ -54,5 +56,20 @@ describe('Task Registry', () => {
 
   it('should return undefined for unknown task', () => {
     expect(getTask('nonexistent')).toBeUndefined();
+  });
+});
+
+describe('Default Tasks', () => {
+  beforeEach(() => {
+    clearTasks();
+    registerTask(hiringTask);
+  });
+
+  it('should have a default "hiring" task registered', () => {
+    const hiring = getTask('hiring');
+    expect(hiring).toBeDefined();
+    expect(hiring!.id).toBe('hiring');
+    expect(hiring!.scenarios.oneShot.nonStrict).toBeDefined();
+    expect(hiring!.scenarios.sequential.nonStrict.step1).toBeDefined();
   });
 });
