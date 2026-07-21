@@ -15,7 +15,7 @@ import type { ScenarioResult, RunResult } from '@/lib/storage';
 interface Model {
   id: string;
   name: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter';
+  provider: string;
   providerName: string;
   hasEnvKey: boolean;
 }
