@@ -2,25 +2,8 @@ import { generateObject, generateText } from 'ai';
 import type { ZodSchema } from 'zod';
 import { ZodError } from 'zod';
 import { getModelWithKeys, type ModelConfig, type ApiKeys } from './models-factory';
-import {
-  ResponseSchema,
-  SequentialPart1Schema,
-  SequentialPart2Schema,
-  SequentialPart3Schema,
-  mergeSequentialParts,
-  type SequentialPart1,
-  type SequentialPart2,
-  type SequentialPart3,
-} from './schemas';
-import { formatConversation } from './conversation';
-import {
-  systemPrompt,
-  getOneShotPrompt,
-  oneShotStrictPrompt,
-  sequentialPrompts,
-  getRetryPrompt,
-  extractJson,
-} from './prompts';
+import { extractJson } from './prompts';
+import { type Task } from './task';
 import {
   type AttemptResult,
   type StepResult,
@@ -276,11 +259,11 @@ async function runStrictAttempt<T>(
 async function runScenario1(
   model: ModelConfig,
   config: TestConfig,
+  task: Task,
   onProgress?: ProgressCallback,
   onRunComplete?: RunCompleteCallback
 ): Promise<RunResult[]> {
   const runs: RunResult[] = [];
-  const conversationText = formatConversation();
 
   for (let runNum = 1; runNum <= config.runsPerScenario; runNum++) {
     const attempts: AttemptResult[] = [];
@@ -292,9 +275,9 @@ async function runScenario1(
       const attemptStartTime = Date.now();
 
       const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
-        { role: 'user', content: getOneShotPrompt() },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
+        { role: 'user', content: task.scenarios.oneShot.nonStrict.prompt },
       ];
 
       // Add retry context if not first attempt
@@ -306,7 +289,7 @@ async function runScenario1(
         });
         messages.push({
           role: 'user',
-          content: getRetryPrompt(lastAttempt.rawResponse, lastAttempt.validationErrors),
+          content: task.retryPrompt(lastAttempt.rawResponse, lastAttempt.validationErrors),
         });
       }
 
@@ -330,7 +313,7 @@ async function runScenario1(
         },
       });
 
-      const result = await runNonStrictAttempt(model, messages, ResponseSchema, config);
+      const result = await runNonStrictAttempt(model, messages, task.scenarios.oneShot.nonStrict.schema, config);
       const attemptDuration = Date.now() - attemptStartTime;
 
       const attemptResult: AttemptResult = {
@@ -407,11 +390,11 @@ async function runScenario1(
 async function runScenario2(
   model: ModelConfig,
   config: TestConfig,
+  task: Task,
   onProgress?: ProgressCallback,
   onRunComplete?: RunCompleteCallback
 ): Promise<RunResult[]> {
   const runs: RunResult[] = [];
-  const conversationText = formatConversation();
 
   for (let runNum = 1; runNum <= config.runsPerScenario; runNum++) {
     const attempts: AttemptResult[] = [];
@@ -423,9 +406,9 @@ async function runScenario2(
       const attemptStartTime = Date.now();
 
       const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
-        { role: 'user', content: oneShotStrictPrompt },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
+        { role: 'user', content: task.scenarios.oneShot.strict.prompt },
       ];
 
       // Add retry context if not first attempt
@@ -437,7 +420,7 @@ async function runScenario2(
         });
         messages.push({
           role: 'user',
-          content: getRetryPrompt(lastAttempt.rawResponse, lastAttempt.validationErrors),
+          content: task.retryPrompt(lastAttempt.rawResponse, lastAttempt.validationErrors),
         });
       }
 
@@ -461,7 +444,7 @@ async function runScenario2(
         },
       });
 
-      const result = await runStrictAttempt(model, messages, ResponseSchema, config);
+      const result = await runStrictAttempt(model, messages, task.scenarios.oneShot.strict.schema, config);
       const attemptDuration = Date.now() - attemptStartTime;
 
       const attemptResult: AttemptResult = {
@@ -538,11 +521,11 @@ async function runScenario2(
 async function runScenario3(
   model: ModelConfig,
   config: TestConfig,
+  task: Task,
   onProgress?: ProgressCallback,
   onRunComplete?: RunCompleteCallback
 ): Promise<RunResult[]> {
   const runs: RunResult[] = [];
-  const conversationText = formatConversation();
 
   for (let runNum = 1; runNum <= config.runsPerScenario; runNum++) {
     const steps: StepResult[] = [];
@@ -553,11 +536,11 @@ async function runScenario3(
     try {
       // Step 1: Initial recommendation
       const step1: StepResult = { stepNumber: 1, stepName: 'Recommendation', success: false, attempts: [] };
-      let step1Result: SequentialPart1 | null = null;
+      let step1Result: any = null;
       let step1Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
-        { role: 'user', content: sequentialPrompts.step1.nonStrict },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
+        { role: 'user', content: task.scenarios.sequential.nonStrict.step1.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -587,7 +570,7 @@ async function runScenario3(
           },
         });
 
-        const result = await runNonStrictAttempt(model, step1Messages, SequentialPart1Schema, config);
+        const result = await runNonStrictAttempt(model, step1Messages, task.scenarios.sequential.nonStrict.step1.schema, config);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -629,7 +612,7 @@ async function runScenario3(
         });
 
         if (result.success) {
-          step1Result = result.data as SequentialPart1;
+          step1Result = result.data as any;
           step1.success = true;
           break;
         }
@@ -637,7 +620,7 @@ async function runScenario3(
         step1Messages = [
           ...step1Messages,
           { role: 'assistant' as const, content: result.raw },
-          { role: 'user' as const, content: getRetryPrompt(result.raw, result.errors || []) },
+          { role: 'user' as const, content: task.retryPrompt(result.raw, result.errors || []) },
         ];
       }
 
@@ -646,12 +629,12 @@ async function runScenario3(
 
       // Step 2: Actor details
       const step2: StepResult = { stepNumber: 2, stepName: 'Details', success: false, attempts: [] };
-      let step2Result: SequentialPart2 | null = null;
+      let step2Result: any = null;
       let step2Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
-        { role: 'user', content: sequentialPrompts.step2.nonStrict },
+        { role: 'user', content: task.scenarios.sequential.nonStrict.step2.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -681,7 +664,7 @@ async function runScenario3(
           },
         });
 
-        const result = await runNonStrictAttempt(model, step2Messages, SequentialPart2Schema, config);
+        const result = await runNonStrictAttempt(model, step2Messages, task.scenarios.sequential.nonStrict.step2.schema, config);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -723,7 +706,7 @@ async function runScenario3(
         });
 
         if (result.success) {
-          step2Result = result.data as SequentialPart2;
+          step2Result = result.data as any;
           step2.success = true;
           break;
         }
@@ -731,7 +714,7 @@ async function runScenario3(
         step2Messages = [
           ...step2Messages,
           { role: 'assistant' as const, content: result.raw },
-          { role: 'user' as const, content: getRetryPrompt(result.raw, result.errors || []) },
+          { role: 'user' as const, content: task.retryPrompt(result.raw, result.errors || []) },
         ];
       }
 
@@ -740,13 +723,13 @@ async function runScenario3(
 
       // Step 3: AI config
       const step3: StepResult = { stepNumber: 3, stepName: 'AI Config', success: false, attempts: [] };
-      let step3Result: SequentialPart3 | null = null;
+      let step3Result: any = null;
       let step3Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
         { role: 'assistant', content: JSON.stringify(step2Result) },
-        { role: 'user', content: sequentialPrompts.step3.nonStrict },
+        { role: 'user', content: task.scenarios.sequential.nonStrict.step3.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -776,7 +759,7 @@ async function runScenario3(
           },
         });
 
-        const result = await runNonStrictAttempt(model, step3Messages, SequentialPart3Schema, config);
+        const result = await runNonStrictAttempt(model, step3Messages, task.scenarios.sequential.nonStrict.step3.schema, config);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -818,7 +801,7 @@ async function runScenario3(
         });
 
         if (result.success) {
-          step3Result = result.data as SequentialPart3;
+          step3Result = result.data as any;
           step3.success = true;
           break;
         }
@@ -826,7 +809,7 @@ async function runScenario3(
         step3Messages = [
           ...step3Messages,
           { role: 'assistant' as const, content: result.raw },
-          { role: 'user' as const, content: getRetryPrompt(result.raw, result.errors || []) },
+          { role: 'user' as const, content: task.retryPrompt(result.raw, result.errors || []) },
         ];
       }
 
@@ -834,8 +817,8 @@ async function runScenario3(
       if (!step3Result) throw new Error('Step 3 failed');
 
       // Merge and validate final result
-      const merged = mergeSequentialParts(step1Result, step2Result, step3Result);
-      ResponseSchema.parse(merged);
+      const merged = task.scenarios.sequential.merge([step1Result, step2Result, step3Result]);
+      task.scenarios.oneShot.nonStrict.schema.parse(merged);
 
       success = true;
       finalResponse = merged as unknown as Record<string, unknown>;
@@ -871,11 +854,11 @@ async function runScenario3(
 async function runScenario4(
   model: ModelConfig,
   config: TestConfig,
+  task: Task,
   onProgress?: ProgressCallback,
   onRunComplete?: RunCompleteCallback
 ): Promise<RunResult[]> {
   const runs: RunResult[] = [];
-  const conversationText = formatConversation();
 
   for (let runNum = 1; runNum <= config.runsPerScenario; runNum++) {
     const steps: StepResult[] = [];
@@ -886,11 +869,11 @@ async function runScenario4(
     try {
       // Step 1: Initial recommendation
       const step1: StepResult = { stepNumber: 1, stepName: 'Recommendation', success: false, attempts: [] };
-      let step1Result: SequentialPart1 | null = null;
+      let step1Result: any = null;
       let step1Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
-        { role: 'user', content: sequentialPrompts.step1.strict },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
+        { role: 'user', content: task.scenarios.sequential.strict.step1.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -920,7 +903,7 @@ async function runScenario4(
           },
         });
 
-        const result = await runStrictAttempt(model, step1Messages, SequentialPart1Schema, config);
+        const result = await runStrictAttempt(model, step1Messages, task.scenarios.sequential.strict.step1.schema, config);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -962,7 +945,7 @@ async function runScenario4(
         });
 
         if (result.success) {
-          step1Result = result.data as SequentialPart1;
+          step1Result = result.data as any;
           step1.success = true;
           break;
         }
@@ -970,7 +953,7 @@ async function runScenario4(
         step1Messages = [
           ...step1Messages,
           { role: 'assistant' as const, content: result.raw },
-          { role: 'user' as const, content: getRetryPrompt(result.raw, result.errors || []) },
+          { role: 'user' as const, content: task.retryPrompt(result.raw, result.errors || []) },
         ];
       }
 
@@ -979,12 +962,12 @@ async function runScenario4(
 
       // Step 2: Actor details
       const step2: StepResult = { stepNumber: 2, stepName: 'Details', success: false, attempts: [] };
-      let step2Result: SequentialPart2 | null = null;
+      let step2Result: any = null;
       let step2Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
-        { role: 'user', content: sequentialPrompts.step2.strict },
+        { role: 'user', content: task.scenarios.sequential.strict.step2.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -1014,7 +997,7 @@ async function runScenario4(
           },
         });
 
-        const result = await runStrictAttempt(model, step2Messages, SequentialPart2Schema, config);
+        const result = await runStrictAttempt(model, step2Messages, task.scenarios.sequential.strict.step2.schema, config);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -1056,7 +1039,7 @@ async function runScenario4(
         });
 
         if (result.success) {
-          step2Result = result.data as SequentialPart2;
+          step2Result = result.data as any;
           step2.success = true;
           break;
         }
@@ -1064,7 +1047,7 @@ async function runScenario4(
         step2Messages = [
           ...step2Messages,
           { role: 'assistant' as const, content: result.raw },
-          { role: 'user' as const, content: getRetryPrompt(result.raw, result.errors || []) },
+          { role: 'user' as const, content: task.retryPrompt(result.raw, result.errors || []) },
         ];
       }
 
@@ -1073,13 +1056,13 @@ async function runScenario4(
 
       // Step 3: AI config
       const step3: StepResult = { stepNumber: 3, stepName: 'AI Config', success: false, attempts: [] };
-      let step3Result: SequentialPart3 | null = null;
+      let step3Result: any = null;
       let step3Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here is a conversation between team members:\n\n${conversationText}` },
+        { role: 'system', content: task.systemPrompt },
+        { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
         { role: 'assistant', content: JSON.stringify(step2Result) },
-        { role: 'user', content: sequentialPrompts.step3.strict },
+        { role: 'user', content: task.scenarios.sequential.strict.step3.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -1109,7 +1092,7 @@ async function runScenario4(
           },
         });
 
-        const result = await runStrictAttempt(model, step3Messages, SequentialPart3Schema, config);
+        const result = await runStrictAttempt(model, step3Messages, task.scenarios.sequential.strict.step3.schema, config);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -1151,7 +1134,7 @@ async function runScenario4(
         });
 
         if (result.success) {
-          step3Result = result.data as SequentialPart3;
+          step3Result = result.data as any;
           step3.success = true;
           break;
         }
@@ -1159,7 +1142,7 @@ async function runScenario4(
         step3Messages = [
           ...step3Messages,
           { role: 'assistant' as const, content: result.raw },
-          { role: 'user' as const, content: getRetryPrompt(result.raw, result.errors || []) },
+          { role: 'user' as const, content: task.retryPrompt(result.raw, result.errors || []) },
         ];
       }
 
@@ -1167,8 +1150,8 @@ async function runScenario4(
       if (!step3Result) throw new Error('Step 3 failed');
 
       // Merge and validate final result
-      const merged = mergeSequentialParts(step1Result, step2Result, step3Result);
-      ResponseSchema.parse(merged);
+      const merged = task.scenarios.sequential.merge([step1Result, step2Result, step3Result]);
+      task.scenarios.oneShot.strict.schema.parse(merged);
 
       success = true;
       finalResponse = merged as unknown as Record<string, unknown>;
@@ -1205,6 +1188,7 @@ export async function runModelTests(
   modelId: string,
   scenarios: number[],
   config: TestConfig = DEFAULT_CONFIG,
+  task: Task,
   onProgress?: ProgressCallback,
   onRunComplete?: RunCompleteCallback
 ): Promise<{ [scenario: string]: ScenarioResult }> {
@@ -1225,16 +1209,16 @@ export async function runModelTests(
 
     switch (scenario) {
       case 1:
-        runs = await runScenario1(model, config, onProgress, onRunComplete);
+        runs = await runScenario1(model, config, task, onProgress, onRunComplete);
         break;
       case 2:
-        runs = await runScenario2(model, config, onProgress, onRunComplete);
+        runs = await runScenario2(model, config, task, onProgress, onRunComplete);
         break;
       case 3:
-        runs = await runScenario3(model, config, onProgress, onRunComplete);
+        runs = await runScenario3(model, config, task, onProgress, onRunComplete);
         break;
       case 4:
-        runs = await runScenario4(model, config, onProgress, onRunComplete);
+        runs = await runScenario4(model, config, task, onProgress, onRunComplete);
         break;
       default:
         throw new Error(`Invalid scenario: ${scenario}`);
@@ -1257,13 +1241,14 @@ export async function runFullTestSuite(
   modelIds: string[],
   scenarios: number[],
   config: TestConfig = DEFAULT_CONFIG,
+  task: Task,
   onProgress?: ProgressCallback,
   onRunComplete?: RunCompleteCallback
 ): Promise<TestRunFile['results']> {
   const results: TestRunFile['results'] = {};
 
   for (const modelId of modelIds) {
-    results[modelId] = await runModelTests(modelId, scenarios, config, onProgress, onRunComplete);
+    results[modelId] = await runModelTests(modelId, scenarios, config, task, onProgress, onRunComplete);
   }
 
   return results;
