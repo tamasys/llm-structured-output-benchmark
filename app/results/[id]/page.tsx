@@ -18,7 +18,7 @@ interface Props {
 interface ModelScenarioData {
   modelId: string;
   modelName: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter';
+  provider: string;
   scenario: number;
   result: ScenarioResult;
 }

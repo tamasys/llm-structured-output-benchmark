@@ -84,13 +84,11 @@ export default async function Dashboard() {
   });
 
   // Group models by provider
-  const modelsByProvider = {
-    openai: modelStats.filter((m) => m.provider === 'openai'),
-    anthropic: modelStats.filter((m) => m.provider === 'anthropic'),
-    google: modelStats.filter((m) => m.provider === 'google'),
-    groq: modelStats.filter((m) => m.provider === 'groq'),
-    openrouter: modelStats.filter((m) => m.provider === 'openrouter'),
-  };
+  const modelsByProvider = modelStats.reduce((acc, m) => {
+    if (!acc[m.provider]) acc[m.provider] = [];
+    acc[m.provider].push(m);
+    return acc;
+  }, {} as Record<string, typeof modelStats>);
 
   return (
     <div className="space-y-8">

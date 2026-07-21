@@ -9,6 +9,7 @@ import { SuccessRateChart } from '@/components/SuccessRateChart';
 import { CostTimeScatterChart } from '@/components/CostTimeScatterChart';
 import { modelPricing } from '@/lib/pricing';
 import { useApiKeys } from '@/lib/api-keys-context';
+import { listTasks } from '@/lib/task';
 import type { ScenarioResult, RunResult } from '@/lib/storage';
 
 interface Model {
@@ -386,6 +387,9 @@ export default function RunTestsPage() {
   const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const tasks = useMemo(() => listTasks(), []);
+  const [selectedTaskId, setSelectedTaskId] = useState(tasks[0]?.id || 'hiring');
+
   const modelHasKey = useCallback((model: Model) => {
     return model.hasEnvKey || hasKey(model.provider);
   }, [hasKey]);
@@ -505,6 +509,7 @@ export default function RunTestsPage() {
           models: Array.from(selectedModels),
           scenarios: Array.from(selectedScenarios),
           runsPerScenario,
+          taskId: selectedTaskId,
         }),
       });
 
@@ -801,7 +806,19 @@ export default function RunTestsPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Configuration
             </h2>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <label className="flex items-center gap-2">
+                <span className="text-gray-700 dark:text-gray-300">Task:</span>
+                <select
+                  value={selectedTaskId}
+                  onChange={(e) => setSelectedTaskId(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  {tasks.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </label>
               <label className="flex items-center gap-2">
                 <span className="text-gray-700 dark:text-gray-300">Runs per scenario:</span>
                 <input
