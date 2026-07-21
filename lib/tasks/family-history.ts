@@ -206,7 +206,7 @@ export function mergeSequentialAnalysis(
     const pid = person.id as string;
     const relData = relationshipsByPersonId.get(pid);
     if (relData) {
-      const { person_id: _, ...rest } = relData;
+      const { person_id, ...rest } = relData;
       return { ...person, ...rest };
     }
     return person;
