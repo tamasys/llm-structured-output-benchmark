@@ -1,6 +1,8 @@
 import { registerTask, getTask, listTasks, clearTasks, type Task } from '../lib/task';
 import '../lib/tasks/hiring';
+import '../lib/tasks/family-history';
 import { hiringTask } from '../lib/tasks/hiring';
+import { familyHistoryTask } from '../lib/tasks/family-history';
 
 describe('Task Registry', () => {
   beforeEach(() => {
@@ -63,6 +65,7 @@ describe('Default Tasks', () => {
   beforeEach(() => {
     clearTasks();
     registerTask(hiringTask);
+    registerTask(familyHistoryTask);
   });
 
   it('should have a default "hiring" task registered', () => {
@@ -71,5 +74,13 @@ describe('Default Tasks', () => {
     expect(hiring!.id).toBe('hiring');
     expect(hiring!.scenarios.oneShot.nonStrict).toBeDefined();
     expect(hiring!.scenarios.sequential.nonStrict.step1).toBeDefined();
+  });
+
+  it('should register and retrieve the family-history task', () => {
+    const task = getTask('family-history');
+    expect(task).toBeDefined();
+    expect(task!.id).toBe('family-history');
+    expect(task!.name).toBe('Family History Extraction');
+    expect(task!.systemPrompt).toContain('family history analyst');
   });
 });
