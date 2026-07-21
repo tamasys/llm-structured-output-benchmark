@@ -8,7 +8,7 @@ import { ActivityLog } from '@/components/ActivityLog';
 import { SuccessRateChart } from '@/components/SuccessRateChart';
 import { CostTimeScatterChart } from '@/components/CostTimeScatterChart';
 import { modelPricing } from '@/lib/pricing';
-import { useApiKeys } from '@/lib/api-keys-context';
+import { useApiKeys, type ApiKeys } from '@/lib/api-keys-context';
 import { listTasks } from '@/lib/task';
 import type { ScenarioResult, RunResult } from '@/lib/storage';
 
@@ -391,7 +391,7 @@ export default function RunTestsPage() {
   const [selectedTaskId, setSelectedTaskId] = useState(tasks[0]?.id || 'hiring');
 
   const modelHasKey = useCallback((model: Model) => {
-    return model.hasEnvKey || hasKey(model.provider);
+    return model.hasEnvKey || hasKey(model.provider as keyof ApiKeys);
   }, [hasKey]);
 
   useEffect(() => {
