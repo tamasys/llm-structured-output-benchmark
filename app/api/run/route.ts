@@ -7,6 +7,7 @@ import {
 import { runFullTestSuite, type TestProgress, type RunCompleteEvent } from '@/lib/test-runner';
 import { calculateScenarioSummary } from '@/lib/storage';
 import { modelDefinitions, getModelDefinition, type ApiKeys } from '@/lib/models-factory';
+import { getTask, type Task } from '@/lib/task';
 import {
   activeRuns,
   type AttemptStatus,
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
       runsPerScenario = 10,
       temperature = 0.1,
       maxRetries = 3,
+      taskId = 'hiring',
     } = body;
 
     const validModelIds = modelIds.filter((id: string) => {
@@ -81,6 +83,14 @@ export async function POST(request: NextRequest) {
     if (validScenarios.length === 0) {
       return NextResponse.json(
         { error: 'No valid scenarios specified' },
+        { status: 400 }
+      );
+    }
+
+    const task = getTask(taskId);
+    if (!task) {
+      return NextResponse.json(
+        { error: `Unknown task: ${taskId}` },
         { status: 400 }
       );
     }
@@ -161,7 +171,7 @@ export async function POST(request: NextRequest) {
       maxRetries,
       runsPerScenario,
       apiKeys,
-    });
+    }, task);
 
     return NextResponse.json({ runId: run.id });
   } catch (error) {
@@ -177,7 +187,8 @@ async function runTestsInBackground(
   runId: string,
   modelIds: string[],
   scenarios: number[],
-  config: { temperature: number; maxRetries: number; runsPerScenario: number; apiKeys: ApiKeys }
+  config: { temperature: number; maxRetries: number; runsPerScenario: number; apiKeys: ApiKeys },
+  task: Task
 ) {
   const activeRun = activeRuns.get(runId);
   if (!activeRun) return;
@@ -375,6 +386,7 @@ async function runTestsInBackground(
       modelIds,
       scenarios,
       config,
+      task,
       onProgress,
       onRunComplete
     );
