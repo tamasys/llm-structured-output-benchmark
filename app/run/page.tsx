@@ -10,6 +10,7 @@ import { CostTimeScatterChart } from '@/components/CostTimeScatterChart';
 import { modelPricing } from '@/lib/pricing';
 import { useApiKeys, type ApiKeys } from '@/lib/api-keys-context';
 import { listTasks } from '@/lib/task';
+import { providers } from '@/lib/models';
 import type { ScenarioResult, RunResult } from '@/lib/storage';
 
 interface Model {
@@ -721,7 +722,7 @@ export default function RunTestsPage() {
               {Object.entries(modelsByProvider).map(([provider, providerModels]) => (
                 <div key={provider}>
                   <div className="flex items-center gap-2 mb-3">
-                    <ProviderBadge provider={provider as 'openai' | 'anthropic' | 'google' | 'groq' | 'openrouter'} />
+                    <ProviderBadge provider={provider as keyof typeof providers} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {providerModels.map((model) => {
