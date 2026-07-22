@@ -64,6 +64,35 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ valid: false, error: 'Invalid key' });
       }
 
+      case 'opencode_go':
+      case 'opencode_zen': {
+        const base = provider === 'opencode_go'
+          ? 'https://opencode.ai/zen/go/v1'
+          : 'https://opencode.ai/zen/v1';
+        const ocRes = await fetch(`${base}/models`, {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        if (ocRes.ok) return NextResponse.json({ valid: true });
+        if (ocRes.status === 401 || ocRes.status === 403) return NextResponse.json({ valid: false, error: 'Invalid API key' });
+        // Models endpoint may not exist; try chat completion to check auth
+        const chatRes = await fetch(`${base}/chat/completions`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: '', messages: [{ role: 'user', content: 'hi' }], max_tokens: 1 }),
+        });
+        if (chatRes.status === 401 || chatRes.status === 403) return NextResponse.json({ valid: false, error: 'Invalid API key' });
+        return NextResponse.json({ valid: true });
+      }
+
+      case 'nvidia': {
+        const nvRes = await fetch('https://integrate.api.nvidia.com/v1/models', {
+          headers: { Authorization: `Bearer ${key}` },
+        });
+        if (nvRes.ok) return NextResponse.json({ valid: true });
+        const nvData = await nvRes.json();
+        return NextResponse.json({ valid: false, error: nvData.error?.message || 'Invalid NVIDIA key' });
+      }
+
       default:
         return NextResponse.json({ valid: false, error: 'Unknown provider' }, { status: 400 });
     }
