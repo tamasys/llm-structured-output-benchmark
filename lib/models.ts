@@ -127,7 +127,7 @@ const lmStudio = createOpenAICompatible({
 const lmStudioModels: ModelConfig[] = [
   {
     id: 'lm-studio',
-    name: 'LM Studio',
+    name: 'LM Studio (local)',
     provider: 'lm_studio',
     model: lmStudio.chatModel(''),
     supportsStrictMode: true,
@@ -159,10 +159,17 @@ const ollamaCloud = createOllama(
 
 const ollamaCloudModels: ModelConfig[] = [
   {
-    id: 'ollama-cloud',
-    name: 'Ollama Cloud',
+    id: 'ollama-cloud-llama3',
+    name: 'Llama 3.2',
     provider: 'ollama_cloud',
-    model: ollamaCloud.chat(''),
+    model: ollamaCloud.chat('llama3.2'),
+    supportsStrictMode: false,
+  },
+  {
+    id: 'ollama-cloud-qwen25',
+    name: 'Qwen 2.5',
+    provider: 'ollama_cloud',
+    model: ollamaCloud.chat('qwen2.5'),
     supportsStrictMode: false,
   },
 ];
@@ -177,10 +184,17 @@ const opencodeGo = createOpenAICompatible({
 
 const opencodeGoModels: ModelConfig[] = [
   {
-    id: 'opencode-go',
-    name: 'OpenCode Go',
+    id: 'opencode-go-deepseek-v4-flash',
+    name: 'DeepSeek V4 Flash',
     provider: 'opencode_go',
-    model: opencodeGo.chatModel(''),
+    model: opencodeGo.chatModel('deepseek-v4-flash'),
+    supportsStrictMode: true,
+  },
+  {
+    id: 'opencode-go-kimi-k3',
+    name: 'Kimi K3',
+    provider: 'opencode_go',
+    model: opencodeGo.chatModel('kimi-k3'),
     supportsStrictMode: true,
   },
 ];
@@ -194,10 +208,10 @@ const opencodeZen = createOpenAICompatible({
 
 const opencodeZenModels: ModelConfig[] = [
   {
-    id: 'opencode-zen',
-    name: 'OpenCode Zen',
+    id: 'opencode-zen-deepseek-v4-flash',
+    name: 'DeepSeek V4 Flash',
     provider: 'opencode_zen',
-    model: opencodeZen.chatModel(''),
+    model: opencodeZen.chatModel('deepseek-v4-flash'),
     supportsStrictMode: true,
   },
 ];
@@ -212,10 +226,17 @@ const nvidia = createOpenAICompatible({
 
 const nvidiaModels: ModelConfig[] = [
   {
-    id: 'nvidia',
-    name: 'NVIDIA',
+    id: 'nvidia-nemotron-ultra',
+    name: 'Nemotron 3 Ultra',
     provider: 'nvidia',
-    model: nvidia.chatModel(''),
+    model: nvidia.chatModel('nvidia/nemotron-3-ultra-550b-a55b'),
+    supportsStrictMode: true,
+  },
+  {
+    id: 'nvidia-llama-nemotron',
+    name: 'Llama 3.3 Nemotron Super',
+    provider: 'nvidia',
+    model: nvidia.chatModel('nvidia/llama-3.3-nemotron-super-49b-v1'),
     supportsStrictMode: true,
   },
 ];

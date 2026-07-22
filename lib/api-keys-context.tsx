@@ -24,18 +24,32 @@ interface ApiKeysContextType {
 
 const ApiKeysContext = createContext<ApiKeysContextType | null>(null);
 
+function loadKeys(): ApiKeys {
+  if (typeof window === 'undefined') return {};
+  try {
+    const saved = localStorage.getItem('api-keys');
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
 export function ApiKeysProvider({ children }: { children: ReactNode }) {
-  const [keys, setKeys] = useState<ApiKeys>({});
+  const [keys, setKeys] = useState<ApiKeys>(loadKeys);
 
   const setKey = useCallback((provider: keyof ApiKeys, key: string) => {
-    setKeys(prev => ({
-      ...prev,
-      [provider]: key || undefined,
-    }));
+    setKeys(prev => {
+      const next = { ...prev, [provider]: key || undefined };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('api-keys', JSON.stringify(next));
+      }
+      return next;
+    });
   }, []);
 
   const clearKeys = useCallback(() => {
     setKeys({});
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('api-keys');
+    }
   }, []);
 
   const hasKey = useCallback((provider: keyof ApiKeys) => {

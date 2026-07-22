@@ -22,7 +22,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(16);
+      expect(models).toHaveLength(19);
     });
 
     it('should have models from all providers', () => {
@@ -38,10 +38,10 @@ describe('Model Configuration', () => {
       expect(providerCounts.openrouter).toBe(1);
       expect(providerCounts.lm_studio).toBe(1);
       expect(providerCounts.ollama_local).toBe(1);
-      expect(providerCounts.ollama_cloud).toBe(1);
-      expect(providerCounts.opencode_go).toBe(1);
+      expect(providerCounts.ollama_cloud).toBe(2);
+      expect(providerCounts.opencode_go).toBe(2);
       expect(providerCounts.opencode_zen).toBe(1);
-      expect(providerCounts.nvidia).toBe(1);
+      expect(providerCounts.nvidia).toBe(2);
     });
 
     it('should contain an LM Studio model', () => {
@@ -95,28 +95,28 @@ describe('Model Configuration', () => {
     it('should contain an Ollama Cloud model', () => {
       const cloud = models.find(m => m.provider === 'ollama_cloud');
       expect(cloud).toBeDefined();
-      expect(cloud!.id).toBe('ollama-cloud');
+      expect(cloud!.id).toBe('ollama-cloud-llama3');
       expect(cloud!.supportsStrictMode).toBe(false);
     });
 
     it('should contain an OpenCode Go model', () => {
       const go = models.find(m => m.provider === 'opencode_go');
       expect(go).toBeDefined();
-      expect(go!.id).toBe('opencode-go');
+      expect(go!.id).toBe('opencode-go-deepseek-v4-flash');
       expect(go!.supportsStrictMode).toBe(true);
     });
 
     it('should contain an OpenCode Zen model', () => {
       const zen = models.find(m => m.provider === 'opencode_zen');
       expect(zen).toBeDefined();
-      expect(zen!.id).toBe('opencode-zen');
+      expect(zen!.id).toBe('opencode-zen-deepseek-v4-flash');
       expect(zen!.supportsStrictMode).toBe(true);
     });
 
     it('should contain an NVIDIA model', () => {
       const nv = models.find(m => m.provider === 'nvidia');
       expect(nv).toBeDefined();
-      expect(nv!.id).toBe('nvidia');
+      expect(nv!.id).toBe('nvidia-nemotron-ultra');
       expect(nv!.supportsStrictMode).toBe(true);
     });
   });
@@ -288,7 +288,7 @@ describe('Model Configuration', () => {
   describe('getModelsByProvider for Ollama Cloud', () => {
     it('should return models for Ollama Cloud', () => {
       const cloudModels = getModelsByProvider('ollama_cloud');
-      expect(cloudModels).toHaveLength(1);
+      expect(cloudModels).toHaveLength(2);
       cloudModels.forEach((model) => {
         expect(model.provider).toBe('ollama_cloud');
       });
@@ -298,7 +298,7 @@ describe('Model Configuration', () => {
   describe('getModelsByProvider for OpenCode Go', () => {
     it('should return models for OpenCode Go', () => {
       const goModels = getModelsByProvider('opencode_go');
-      expect(goModels).toHaveLength(1);
+      expect(goModels).toHaveLength(2);
       goModels.forEach((model) => {
         expect(model.provider).toBe('opencode_go');
       });
@@ -318,7 +318,7 @@ describe('Model Configuration', () => {
   describe('getModelsByProvider for NVIDIA', () => {
     it('should return models for NVIDIA', () => {
       const nvModels = getModelsByProvider('nvidia');
-      expect(nvModels).toHaveLength(1);
+      expect(nvModels).toHaveLength(2);
       nvModels.forEach((model) => {
         expect(model.provider).toBe('nvidia');
       });

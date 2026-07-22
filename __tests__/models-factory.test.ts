@@ -26,7 +26,7 @@ describe('Model Factory - LM Studio', () => {
       const def = modelDefinitions.find(m => m.provider === 'lm_studio');
       expect(def).toBeDefined();
       expect(def!.id).toBe('lm-studio');
-      expect(def!.name).toBe('LM Studio');
+      expect(def!.name).toBe('LM Studio (local)');
       expect(def!.supportsStrictMode).toBe(true);
     });
   });
@@ -128,25 +128,25 @@ describe('Model Factory - Ollama Cloud', () => {
     it('should contain an Ollama Cloud entry', () => {
       const def = modelDefinitions.find(m => m.provider === 'ollama_cloud');
       expect(def).toBeDefined();
-      expect(def!.id).toBe('ollama-cloud');
-      expect(def!.name).toBe('Ollama Cloud');
+      expect(def!.id).toBe('ollama-cloud-llama3');
+      expect(def!.name).toBe('Llama 3.2');
       expect(def!.supportsStrictMode).toBe(false);
     });
   });
 
   describe('createModelWithKeys', () => {
     it('should create an Ollama Cloud model config with API key', () => {
-      const def = getModelDefinition('ollama-cloud');
+      const def = getModelDefinition('ollama-cloud-llama3');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, { ollama_cloud: 'test-key' });
       expect(config).not.toBeNull();
-      expect(config!.id).toBe('ollama-cloud');
+      expect(config!.id).toBe('ollama-cloud-llama3');
       expect(config!.provider).toBe('ollama_cloud');
       expect(config!.supportsStrictMode).toBe(false);
     });
 
     it('should return null without API key', () => {
-      const def = getModelDefinition('ollama-cloud');
+      const def = getModelDefinition('ollama-cloud-llama3');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, {});
       expect(config).toBeNull();
@@ -155,12 +155,12 @@ describe('Model Factory - Ollama Cloud', () => {
 
   describe('getModelWithKeys', () => {
     it('should return null without API key', () => {
-      const model = getModelWithKeys('ollama-cloud', {});
+      const model = getModelWithKeys('ollama-cloud-llama3', {});
       expect(model).toBeNull();
     });
 
     it('should return model with API key', () => {
-      const model = getModelWithKeys('ollama-cloud', { ollama_cloud: 'test-key' });
+      const model = getModelWithKeys('ollama-cloud-llama3', { ollama_cloud: 'test-key' });
       expect(model).not.toBeNull();
       expect(model!.provider).toBe('ollama_cloud');
     });
@@ -181,25 +181,25 @@ describe('Model Factory - OpenCode Go', () => {
     it('should contain an OpenCode Go entry', () => {
       const def = modelDefinitions.find(m => m.provider === 'opencode_go');
       expect(def).toBeDefined();
-      expect(def!.id).toBe('opencode-go');
-      expect(def!.name).toBe('OpenCode Go');
+      expect(def!.id).toBe('opencode-go-deepseek-v4-flash');
+      expect(def!.name).toBe('DeepSeek V4 Flash');
       expect(def!.supportsStrictMode).toBe(true);
     });
   });
 
   describe('createModelWithKeys', () => {
     it('should create an OpenCode Go model config with API key', () => {
-      const def = getModelDefinition('opencode-go');
+      const def = getModelDefinition('opencode-go-deepseek-v4-flash');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, { opencode_go: 'test-key' });
       expect(config).not.toBeNull();
-      expect(config!.id).toBe('opencode-go');
+      expect(config!.id).toBe('opencode-go-deepseek-v4-flash');
       expect(config!.provider).toBe('opencode_go');
       expect(config!.supportsStrictMode).toBe(true);
     });
 
     it('should return null without API key', () => {
-      const def = getModelDefinition('opencode-go');
+      const def = getModelDefinition('opencode-go-deepseek-v4-flash');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, {});
       expect(config).toBeNull();
@@ -208,12 +208,12 @@ describe('Model Factory - OpenCode Go', () => {
 
   describe('getModelWithKeys', () => {
     it('should return null without API key', () => {
-      const model = getModelWithKeys('opencode-go', {});
+      const model = getModelWithKeys('opencode-go-deepseek-v4-flash', {});
       expect(model).toBeNull();
     });
 
     it('should return model with API key', () => {
-      const model = getModelWithKeys('opencode-go', { opencode_go: 'test-key' });
+      const model = getModelWithKeys('opencode-go-deepseek-v4-flash', { opencode_go: 'test-key' });
       expect(model).not.toBeNull();
       expect(model!.provider).toBe('opencode_go');
     });
@@ -234,25 +234,25 @@ describe('Model Factory - OpenCode Zen', () => {
     it('should contain an OpenCode Zen entry', () => {
       const def = modelDefinitions.find(m => m.provider === 'opencode_zen');
       expect(def).toBeDefined();
-      expect(def!.id).toBe('opencode-zen');
-      expect(def!.name).toBe('OpenCode Zen');
+      expect(def!.id).toBe('opencode-zen-deepseek-v4-flash');
+      expect(def!.name).toBe('DeepSeek V4 Flash');
       expect(def!.supportsStrictMode).toBe(true);
     });
   });
 
   describe('createModelWithKeys', () => {
     it('should create an OpenCode Zen model config with API key', () => {
-      const def = getModelDefinition('opencode-zen');
+      const def = getModelDefinition('opencode-zen-deepseek-v4-flash');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, { opencode_zen: 'test-key' });
       expect(config).not.toBeNull();
-      expect(config!.id).toBe('opencode-zen');
+      expect(config!.id).toBe('opencode-zen-deepseek-v4-flash');
       expect(config!.provider).toBe('opencode_zen');
       expect(config!.supportsStrictMode).toBe(true);
     });
 
     it('should return null without API key', () => {
-      const def = getModelDefinition('opencode-zen');
+      const def = getModelDefinition('opencode-zen-deepseek-v4-flash');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, {});
       expect(config).toBeNull();
@@ -261,12 +261,12 @@ describe('Model Factory - OpenCode Zen', () => {
 
   describe('getModelWithKeys', () => {
     it('should return null without API key', () => {
-      const model = getModelWithKeys('opencode-zen', {});
+      const model = getModelWithKeys('opencode-zen-deepseek-v4-flash', {});
       expect(model).toBeNull();
     });
 
     it('should return model with API key', () => {
-      const model = getModelWithKeys('opencode-zen', { opencode_zen: 'test-key' });
+      const model = getModelWithKeys('opencode-zen-deepseek-v4-flash', { opencode_zen: 'test-key' });
       expect(model).not.toBeNull();
       expect(model!.provider).toBe('opencode_zen');
     });
@@ -287,25 +287,25 @@ describe('Model Factory - NVIDIA', () => {
     it('should contain an NVIDIA entry', () => {
       const def = modelDefinitions.find(m => m.provider === 'nvidia');
       expect(def).toBeDefined();
-      expect(def!.id).toBe('nvidia');
-      expect(def!.name).toBe('NVIDIA');
+      expect(def!.id).toBe('nvidia-nemotron-ultra');
+      expect(def!.name).toBe('Nemotron 3 Ultra');
       expect(def!.supportsStrictMode).toBe(true);
     });
   });
 
   describe('createModelWithKeys', () => {
     it('should create an NVIDIA model config with API key', () => {
-      const def = getModelDefinition('nvidia');
+      const def = getModelDefinition('nvidia-nemotron-ultra');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, { nvidia: 'test-key' });
       expect(config).not.toBeNull();
-      expect(config!.id).toBe('nvidia');
+      expect(config!.id).toBe('nvidia-nemotron-ultra');
       expect(config!.provider).toBe('nvidia');
       expect(config!.supportsStrictMode).toBe(true);
     });
 
     it('should return null without API key', () => {
-      const def = getModelDefinition('nvidia');
+      const def = getModelDefinition('nvidia-nemotron-ultra');
       expect(def).toBeDefined();
       const config = createModelWithKeys(def!, {});
       expect(config).toBeNull();
@@ -314,12 +314,12 @@ describe('Model Factory - NVIDIA', () => {
 
   describe('getModelWithKeys', () => {
     it('should return null without API key', () => {
-      const model = getModelWithKeys('nvidia', {});
+      const model = getModelWithKeys('nvidia-nemotron-ultra', {});
       expect(model).toBeNull();
     });
 
     it('should return model with API key', () => {
-      const model = getModelWithKeys('nvidia', { nvidia: 'test-key' });
+      const model = getModelWithKeys('nvidia-nemotron-ultra', { nvidia: 'test-key' });
       expect(model).not.toBeNull();
       expect(model!.provider).toBe('nvidia');
     });
