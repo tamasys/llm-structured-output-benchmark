@@ -42,6 +42,30 @@ const providers: Array<{
     envVar: 'OPENROUTER_API_KEY',
     placeholder: 'sk-or-...',
   },
+  {
+    key: 'opencode_go',
+    name: 'OpenCode Go',
+    envVar: 'OPENCODE_API_KEY',
+    placeholder: 'oc_...',
+  },
+  {
+    key: 'opencode_zen',
+    name: 'OpenCode Zen',
+    envVar: 'OPENCODE_API_KEY',
+    placeholder: 'oc_...',
+  },
+  {
+    key: 'nvidia',
+    name: 'NVIDIA',
+    envVar: 'NVIDIA_API_KEY',
+    placeholder: 'nvapi-...',
+  },
+  {
+    key: 'ollama_cloud',
+    name: 'Ollama Cloud',
+    envVar: 'OLLAMA_CLOUD_API_KEY',
+    placeholder: 'ollama_...',
+  },
 ];
 
 export default function SettingsPage() {

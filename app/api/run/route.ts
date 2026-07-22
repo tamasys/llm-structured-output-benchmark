@@ -22,6 +22,10 @@ function extractApiKeys(request: NextRequest): ApiKeys {
     google: request.headers.get('x-google-api-key') || undefined,
     groq: request.headers.get('x-groq-api-key') || undefined,
     openrouter: request.headers.get('x-openrouter-api-key') || undefined,
+    opencode_go: request.headers.get('x-opencode-go-api-key') || undefined,
+    opencode_zen: request.headers.get('x-opencode-zen-api-key') || undefined,
+    nvidia: request.headers.get('x-nvidia-api-key') || undefined,
+    ollama_cloud: request.headers.get('x-ollama-cloud-api-key') || undefined,
   };
 }
 
@@ -37,6 +41,17 @@ function hasKeyForProvider(apiKeys: ApiKeys, provider: string): boolean {
       return !!(apiKeys.groq || process.env.GROQ_API_KEY);
     case 'openrouter':
       return !!(apiKeys.openrouter || process.env.OPENROUTER_API_KEY);
+    case 'opencode_go':
+      return !!(apiKeys.opencode_go || process.env.OPENCODE_API_KEY);
+    case 'opencode_zen':
+      return !!(apiKeys.opencode_zen || process.env.OPENCODE_API_KEY);
+    case 'nvidia':
+      return !!(apiKeys.nvidia || process.env.NVIDIA_API_KEY);
+    case 'ollama_cloud':
+      return !!(apiKeys.ollama_cloud || process.env.OLLAMA_CLOUD_API_KEY);
+    case 'lm_studio':
+    case 'ollama_local':
+      return true; // local providers, no key needed
     default:
       return false;
   }

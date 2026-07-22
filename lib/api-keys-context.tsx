@@ -8,6 +8,10 @@ export interface ApiKeys {
   google?: string;
   groq?: string;
   openrouter?: string;
+  opencode_go?: string;
+  opencode_zen?: string;
+  nvidia?: string;
+  ollama_cloud?: string;
 }
 
 interface ApiKeysContextType {
@@ -45,6 +49,10 @@ export function ApiKeysProvider({ children }: { children: ReactNode }) {
     if (keys.google) headers['x-google-api-key'] = keys.google;
     if (keys.groq) headers['x-groq-api-key'] = keys.groq;
     if (keys.openrouter) headers['x-openrouter-api-key'] = keys.openrouter;
+    if (keys.opencode_go) headers['x-opencode-go-api-key'] = keys.opencode_go;
+    if (keys.opencode_zen) headers['x-opencode-zen-api-key'] = keys.opencode_zen;
+    if (keys.nvidia) headers['x-nvidia-api-key'] = keys.nvidia;
+    if (keys.ollama_cloud) headers['x-ollama-cloud-api-key'] = keys.ollama_cloud;
     return headers;
   }, [keys]);
 
