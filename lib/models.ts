@@ -191,10 +191,10 @@ const opencodeGoModels: ModelConfig[] = [
     supportsStrictMode: true,
   },
   {
-    id: 'opencode-go-kimi-k3',
-    name: 'Kimi K3',
+    id: 'opencode-go-mimo-v2.5',
+    name: 'MiMo V2.5',
     provider: 'opencode_go',
-    model: opencodeGo.chatModel('kimi-k3'),
+    model: opencodeGo.chatModel('mimo-v2.5'),
     supportsStrictMode: true,
   },
 ];
