@@ -1,14 +1,31 @@
-// @ai-sdk/openai-compatible is ESM-only; other AI SDK packages are CJS
+// AI SDK v7 packages are ESM-only — must be mocked for Jest
 jest.mock('@ai-sdk/openai-compatible', () => ({
   createOpenAICompatible: jest.fn(() => ({
-    chatModel: jest.fn(() => ({ id: 'lm-studio-model', provider: 'lm_studio' })),
+    chatModel: jest.fn(() => ({ id: 'mock-model', provider: 'mock' })),
   })),
 }));
-
-jest.mock('@ai-sdk/openai-compatible', () => ({
-  createOpenAICompatible: jest.fn(() => ({
-    chatModel: jest.fn(() => ({ id: 'lm-studio-model', provider: 'lm_studio' })),
+jest.mock('@ai-sdk/anthropic', () => ({
+  createAnthropic: jest.fn(() => jest.fn(() => ({ id: 'mock-model', provider: 'anthropic' }))),
+}));
+jest.mock('@ai-sdk/google', () => ({
+  google: jest.fn(() => ({ id: 'mock-model', provider: 'google' })),
+  createGoogle: jest.fn(() => jest.fn(() => ({ id: 'mock-model', provider: 'google' }))),
+}));
+jest.mock('@ai-sdk/groq', () => ({
+  createGroq: jest.fn(() => jest.fn(() => ({ id: 'mock-model', provider: 'groq' }))),
+}));
+jest.mock('@ai-sdk/openai', () => ({
+  openai: jest.fn(() => ({ id: 'mock-model', provider: 'openai' })),
+  createOpenAI: jest.fn(() => jest.fn(() => ({ id: 'mock-model', provider: 'openai' }))),
+}));
+jest.mock('@openrouter/ai-sdk-provider', () => ({
+  createOpenRouter: jest.fn(() => ({ chat: jest.fn(() => ({ id: 'mock-model', provider: 'openrouter' })) })),
+}));
+jest.mock('ollama-ai-provider-v2', () => ({
+  createOllama: jest.fn(() => ({
+    chat: jest.fn(() => ({ id: 'ollama-model', provider: 'ollama_local' })),
   })),
+  ollama: jest.fn(() => ({ id: 'ollama-model', provider: 'ollama_local' })),
 }));
 
 import {

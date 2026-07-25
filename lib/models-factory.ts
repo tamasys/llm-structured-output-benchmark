@@ -1,5 +1,5 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createGoogle } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
@@ -202,7 +202,7 @@ export function createModelWithKeys(definition: ModelDefinition, apiKeys: ApiKey
     case 'google': {
       const key = apiKeys.google || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
       if (!key) return null;
-      const client = createGoogleGenerativeAI({ apiKey: key });
+      const client = createGoogle({ apiKey: key });
       model = client(definition.modelName);
       break;
     }
