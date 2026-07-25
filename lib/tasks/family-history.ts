@@ -190,45 +190,45 @@ export const oneShotNonStrictPrompt = `Extract ALL entities from the transcript 
 {
   "ambiguities": [
     {
-      "type": "contextual",
-      "line_no": 35,
-      "phrase": "his travelmate Stephen - they were a bit more than travelmates",
-      "original": "Charles and Stephen's relationship",
-      "issue": "Margaret implies Charles and Stephen were partners, not just travelmates, but this is not explicitly stated.",
-      "possibilities": ["Charles and Stephen were romantic partners", "Charles and Stephen were close friends who travelled together"],
-      "certainty": "speculative"
+      "type": "onomastic",
+      "line_no": 99,
+      "phrase": "my cousin Patricia from the next town over",
+      "original": "Patricia's exact relationship",
+      "issue": "Patricia is referred to as 'cousin' but whether first cousin or once-removed is unclear.",
+      "possibilities": ["Patricia was a first cousin (child of an aunt/uncle)", "Patricia was a more distant cousin"],
+      "certainty": "low"
     }
   ],
   "people": [
     {
       "id": "p1",
       "names": [
-        { "value": "John Smith", "type": "BIRTH", "line_no": 3, "phrase": "My name is John Smith" }
+        { "value": "John Smith", "type": "BIRTH", "line_no": 99, "phrase": "my name is John Smith" }
       ],
-      "birth": { "year": 1890, "precision": "YEAR", "line_no": 5, "phrase": "born in 1890" },
+      "birth": { "year": 1890, "precision": "YEAR", "line_no": 99, "phrase": "I was born in 1890" },
       "death": null,
       "sex": "M",
-      "parents": [{ "person_id": "p2", "line_no": 8, "phrase": "his father" }],
+      "parents": [{ "person_id": "p2", "line_no": 99, "phrase": "my father was a farmer" }],
       "partners": [],
       "children": [],
       "member_of": [],
-      "located_at": [{ "place_id": "pl1", "line_no": 7, "phrase": "lived in..." }]
+      "located_at": [{ "place_id": "pl1", "line_no": 99, "phrase": "grew up in a small village" }]
     }
   ],
   "groups": [
-    { "id": "g1", "name": "Salvation Army", "group_type": "ORGANIZATION", "line_no": 208, "phrase": "parents in the Salvation Army" }
+    { "id": "g1", "name": "Village Choir", "group_type": "FRIENDSHIP", "line_no": 99, "phrase": "sang in the church choir" }
   ],
   "events": [
-    { "id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": { "year": 1920, "precision": "YEAR" }, "line_no": 10, "phrase": "they got married" }
+    { "id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": { "year": 1920, "precision": "YEAR" }, "line_no": 99, "phrase": "they got married in the spring" }
   ],
   "places": [
-    { "id": "pl1", "name": "London", "place_type": "CITY", "line_no": 177, "phrase": "evacuee from London" }
+    { "id": "pl1", "name": "Dover", "place_type": "CITY", "line_no": 99, "phrase": "moved to Dover after the war" }
   ],
   "roles": [
-    { "id": "r1", "title": "Coal miner", "type": "OCCUPATION", "line_no": 323, "phrase": "Dad was a coal miner" }
+    { "id": "r1", "title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a schoolteacher for thirty years" }
   ],
   "attributes": [
-    { "id": "a1", "name": "Poor health", "type": "medical_condition", "line_no": 43, "phrase": "she had very poor health" }
+    { "id": "a1", "name": "Arthritis", "type": "medical_condition", "line_no": 99, "phrase": "suffered from arthritis in later years" }
   ],
   "duplicates": []
 }
@@ -256,7 +256,7 @@ export const sequentialPrompts = {
     nonStrict: `Extract ALL people mentioned in the transcript — their names, dates of birth and death, sex, and gender.
 
 Return JSON like this exact example:
-{"people": [{"id": "p1", "names": [{"value": "John Smith", "type": "BIRTH", "line_no": 3, "phrase": "My name is John Smith"}], "birth": {"year": 1890, "precision": "YEAR", "line_no": 5, "phrase": "born in 1890"}, "death": null, "sex": "M"}]}
+{"people": [{"id": "p1", "names": [{"value": "John Smith", "type": "BIRTH", "line_no": 99, "phrase": "my name is John Smith"}], "birth": {"year": 1890, "precision": "YEAR", "line_no": 99, "phrase": "I was born in 1890"}, "death": null, "sex": "M"}]}
 
 Include EVERY person mentioned, even implied ones (like Sammy, who may be a child/grandchild). Set death to null if the person is still alive. Use "CIRCA", "BEFORE", or "AFTER" as modifier when the date is approximate. Precision must be "DECADE", "YEAR", "MONTH", or "DAY".
 
@@ -277,7 +277,7 @@ Include line_no and exact phrase for every field. Be thorough — include implie
     nonStrict: `Identify the relationships between the people you found, their group memberships, and locations.
 
 Return JSON like this exact example:
-{"relationships": [{"person_id": "p1", "parents": [{"person_id": "p2", "line_no": 2, "phrase": "My father was Robert Smith"}], "partners": [{"person_id": "p3", "line_no": 10, "phrase": "married to..."}], "children": [], "member_of": [{"group_id": "g1", "line_no": 15, "phrase": "joined the..."}], "located_at": [{"place_id": "pl1", "line_no": 7, "phrase": "lived in..."}]}], "groups": [{"id": "g1", "name": "Salvation Army", "group_type": "ORGANIZATION", "line_no": 208, "phrase": "parents in the Salvation Army"}]}
+{"relationships": [{"person_id": "p1", "parents": [{"person_id": "p2", "line_no": 99, "phrase": "my father was a farmer"}], "partners": [{"person_id": "p3", "line_no": 99, "phrase": "married my wife in 1910"}], "children": [{"person_id": "p4", "line_no": 99, "phrase": "our daughter Sarah"}], "member_of": [{"group_id": "g1", "line_no": 99, "phrase": "joined the village council"}], "located_at": [{"place_id": "pl1", "line_no": 99, "phrase": "lived on Mill Road"}]}], "groups": [{"id": "g1", "name": "Village Council", "group_type": "ORGANIZATION", "line_no": 99, "phrase": "served on the village council"}]}
 
 The person_id values must match the "id" values from step 1.
 Infer implied relationships (e.g. Sammy refers to "mum" on line 34, meaning Sammy is a descendant of Margaret).
@@ -295,7 +295,7 @@ The person_id values must match the "id" values from step 1's output. Infer impl
     nonStrict: `Identify events, places, roles, attributes, ambiguities, and duplicates from the transcript.
 
 Return JSON like this exact example:
-{"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 10, "phrase": "they got married"}], "places": [{"id": "pl1", "name": "London", "place_type": "CITY", "line_no": 177, "phrase": "evacuee from London"}], "roles": [{"id": "r1", "title": "Coal miner", "type": "OCCUPATION", "line_no": 323, "phrase": "Dad was a coal miner"}], "attributes": [{"id": "a1", "name": "Poor health", "type": "medical_condition", "line_no": 43, "phrase": "she had very poor health"}], "ambiguities": [{"type": "contextual", "line_no": 35, "phrase": "more than travelmates", "original": "Charles and Stephen", "issue": "Implied but not explicitly stated", "possibilities": ["Romantic partners", "Close friends"], "certainty": "speculative"}], "duplicates": []}
+{"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 99, "phrase": "married in 1920"}], "places": [{"id": "pl1", "name": "Dover", "place_type": "CITY", "line_no": 99, "phrase": "moved to Dover"}], "roles": [{"id": "r1", "title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a teacher"}], "attributes": [{"id": "a1", "name": "Arthritis", "type": "medical_condition", "line_no": 99, "phrase": "suffered from arthritis"}], "ambiguities": [{"type": "onomastic", "line_no": 99, "phrase": "my cousin Patricia", "original": "Patricia's relationship", "issue": "Unclear whether Patricia is a first cousin or more distant", "possibilities": ["First cousin", "Distant cousin"], "certainty": "low"}], "duplicates": []}
 
 Event types: BIRTH, DEATH, MIGRATION, WEDDING, etc.
 Place types: CITY, COUNTRY, ADDRESS, LANDMARK, etc.
