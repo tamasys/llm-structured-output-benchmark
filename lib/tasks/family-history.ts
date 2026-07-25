@@ -139,39 +139,42 @@ For every entity, include:
 Do not include entities that are not present in the transcript.
 Do not make up information not stated in the transcript.`;
 
-export const transcript = `[1] Interviewer: Thank you for sitting down with me today. Could we start with your full name and when you were born?
-[2] Interviewee: Margaret, uh, Margaret Ellen Bishop. Born 1908, in Oxford. My father was a lecturer at the college.
-[3] Interviewer: And your parents? What were their names?
-[4] Interviewee: My mother was Eleanor, Eleanor Bishop. She was a nurse before she married. And my father was Harold.
+export const transcript = `[1] Sammy: Thanks for sitting down with me today. Could we start with your full name and when you were born?
+[2] Margaret: Margaret, uh, Margaret Ellen Bishop. Born 1908, in Oxford. My father was a lecturer at the college.
+[3] Sammy: And your parents? What were their names?
+[4] Margaret: My mother was Eleanor, Eleanor Bishop. She was a nurse before she married. And my father was Harold.
 [5] Harold Bishop, that is. He taught history at Oriel College for... oh, nearly forty years.
-[6] Interviewer: Do you have any siblings?
-[7] Interviewee: I had a brother, William. William Arthur Bishop. He was older by about four years.
-[8] Interviewer: What happened to William?
-[9] Interviewee: He died. In the war. The Great War, I mean — 1917 it was. He was only nineteen. My mother never really got over it.
-[10] Interviewer: I'm sorry to hear that. And what about after the war — did you marry?
-[11] Interviewee: Yes. I met a man named George. George Watson. He was a carpenter — no, cabinetmaker, he always insisted on cabinetmaker.
-[12] We married in 1930. At St. Ebbe's, that was her church — my mother's church, I mean.
-[13] Interviewer: And where did you and George live?
-[14] Interviewee: We had a flat on Iffley Road, just off the Iffley Road, in Oxford. It was small but it was home.
-[15] Interviewer: Did you have children?
-[16] Interviewee: We had two. A girl first, Eleanor — named after my mother, of course. Born 1932.
-[17] And then a boy, Harold. After my father. He was born in 19... let me think — 1935? No, 1936. Yes, 1936.
-[18] Interviewer: And what did George do for work later on?
-[19] Interviewee: He worked at the Morris plant — Morris Motors, in Cowley. Started on the line, worked his way up to supervisor by the time he retired.
-[20] He was there for, oh, thirty years? Maybe thirty-five. From about 1932 until he retired in 1965.
-[21] Interviewer: Did you work as well?
-[22] Interviewee: I worked at the library. The Bodleian, actually — not as a librarian, I was in the catalogue room. Started in 1926, before I was married. I left when Eleanor was born.
-[23] Then later, after the children were grown, I went back. Part-time, in the mid-fifties, I suppose. Stayed until 1970.
-[24] Interviewer: What happened to George?
-[25] Interviewee: He passed in 1978. Heart trouble. He'd had problems for years, but he wouldn't see a doctor. Stubborn.
-[26] Interviewer: And your children — what became of them?
-[27] Interviewee: Eleanor — we called her Ellie — she became a teacher. Married a man named David, David Cook. They moved to Canada, of all places. Toronto. That was in 1958.
-[28] Harold — he went to university. First in the family to go. He studied engineering at, uh, at Bristol, I think it was. Or was it Birmingham? No, Bristol. He works — worked — in aerospace.
-[29] Interviewer: Any other family you remember? Aunts, uncles, cousins?
-[30] Interviewee: My mother's sister, Aunt Gertrude, lived with us for a while after Uncle Arthur passed. Arthur was her husband — my mother's brother-in-law, I suppose. He died in... 1933? Something like that. She stayed until she passed in the early sixties.
-[31] And there was my father's brother, Charles. Uncle Charles. He never married. He was a missionary in Africa. We'd get letters from him maybe once a year. I don't know what happened to him after my father died.
-[32] Interviewer: Is there anything else you'd like to add?
-[33] Interviewee: Just that... my brother William was the smart one, everyone said so. But he went to war and that was that. I often wonder what he would have made of everything.`;
+[6] Sammy: Do you have any siblings?
+[7] Margaret: I had a brother, William. William Arthur Bishop. He was older by about four years.
+[8] Sammy: What happened to William?
+[9] Margaret: He died. In the war. The Great War, I mean. 1917 it was. He was only nineteen. My mother never really got over it.
+[10] Sammy: I'm sorry to hear that. And what about after the war - did you marry?
+[11] Margaret: Yes. I met a man named George. George Watson. He was a... well, a carpenter I suppose you'd say, but cabinetmaker, he always insisted on cabinetmaker.
+[12] We married in 1930. At St. Ebbe's, that was her church... my mother's church, I mean.
+[13] Sammy: And where did you and George live?
+[14] Margaret: We had a flat on Iffley Road, just off the Iffley Road, in Oxford. It was small but it was home.
+[15] Sammy: Did you have children?
+[16] Margaret: We had two. A girl first, Eleanor-
+[17] Sammy: Oh, after your mother?
+[18] Margaret: Yes, She was so proud. Born 1932.
+[19] And then a boy, Harold. After my father. He was born in 19... let me think - 1935? No, 1936. Yes, 1936.
+[20] Sammy: And what did George do for work later on?
+[21] Margaret: He worked at the Morris plant, Morris Motors, in Cowley. Started on the line, worked his way up to supervisor by the time he retired.
+[22] He was there for, oh, thirty years? Maybe thirty-five. From about 1932 until he retired in 1965.
+[23] Sammy: Did you work as well?
+[24] Margaret: I worked at the library, The Bodleian, actually. Not as a librarian, I was in the catalogue room. Started in 1926, before I was married. I left when Eleanor was born.
+[25] Then later, after the children were grown, I went back. Part-time, in the mid-fifties, I suppose. Stayed until 1970.
+[26] Sammy: What happened to George?
+[27] Margaret: He passed in 1978. Heart trouble. He'd had problems for years, but he wouldn't see a doctor. Stubborn.
+[28] Sammy: And how are your children going now?
+[29] Margaret: Eleanor - we called her Ellie - she became a teacher. Married a man named David, David Cook. They moved to Canada, of all places. Toronto. That was in 1958.
+[30] Harold - he went to university. First in the family to go. He studied engineering at, uh, at Bristol, I think it was. Or was it Birmingham? No, Bristol. He works in aerospace.
+[31] Sammy: Any other family you remember? Aunts, uncles, cousins?
+[32] Margaret: My mother's sister, Aunt Gertrude, lived with us for a while after Uncle Arthur passed. He died in... 1933? Something like that. She stayed until she passed in the early sixties.
+[33] And there was my father's brother, Charles. Uncle Charles. He never married. He was a missionary in Africa.
+[34] We'd get letters from him and his travelmate Stephen - they were a bit more than travelmates from the sounds of it - maybe once or twice a year. I don't know what happened to them after my father died.
+[35] Sammy: Is there anything else you'd like to add?
+[36] Margaret: Just that... my brother William was the smart one, everyone said so. But he went to war and that was that. I often wonder what he would have made of everything.`;
 
 export const oneShotNonStrictPrompt = `Extract ALL entities from the transcript above into this exact JSON structure:
 
