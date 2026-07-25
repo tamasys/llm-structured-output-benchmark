@@ -190,12 +190,12 @@ export const oneShotNonStrictPrompt = `Extract ALL entities from the transcript 
 {
   "ambiguities": [
     {
-      "type": "onomastic",
+      "type": "contextual",
       "line_no": 99,
-      "phrase": "my cousin Patricia from the next town over",
-      "original": "Patricia's exact relationship",
-      "issue": "Patricia is referred to as 'cousin' but whether first cousin or once-removed is unclear.",
-      "possibilities": ["Patricia was a first cousin (child of an aunt/uncle)", "Patricia was a more distant cousin"],
+      "phrase": "my great aunt Mildred who lived in Brighton",
+      "original": "Great Aunt Mildred's exact relation",
+      "issue": "Mildred is called 'great aunt' but it is not specified whether she was the grandmother's sister or the grandfather's sister, nor which side of the family she belongs to.",
+      "possibilities": ["Mildred was the grandmother's sister (maternal great aunt)", "Mildred was the grandfather's sister (paternal great aunt)"],
       "certainty": "low"
     }
   ],
@@ -295,7 +295,7 @@ The person_id values must match the "id" values from step 1's output. Infer impl
     nonStrict: `Identify events, places, roles, attributes, ambiguities, and duplicates from the transcript.
 
 Return JSON like this exact example:
-{"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 99, "phrase": "married in 1920"}], "places": [{"id": "pl1", "name": "Dover", "place_type": "CITY", "line_no": 99, "phrase": "moved to Dover"}], "roles": [{"id": "r1", "title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a teacher"}], "attributes": [{"id": "a1", "name": "Arthritis", "type": "medical_condition", "line_no": 99, "phrase": "suffered from arthritis"}], "ambiguities": [{"type": "onomastic", "line_no": 99, "phrase": "my cousin Patricia", "original": "Patricia's relationship", "issue": "Unclear whether Patricia is a first cousin or more distant", "possibilities": ["First cousin", "Distant cousin"], "certainty": "low"}], "duplicates": []}
+{"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 99, "phrase": "married in 1920"}], "places": [{"id": "pl1", "name": "Dover", "place_type": "CITY", "line_no": 99, "phrase": "moved to Dover"}], "roles": [{"id": "r1", "title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a teacher"}], "attributes": [{"id": "a1", "name": "Arthritis", "type": "medical_condition", "line_no": 99, "phrase": "suffered from arthritis"}], "ambiguities": [{"type": "contextual", "line_no": 99, "phrase": "my great aunt Mildred", "original": "Great Aunt Mildred's side of family", "issue": "Mildred's exact relationship is unclear — not specified which grandparent she is sibling to", "possibilities": ["Maternal great aunt (grandmother's sister)", "Paternal great aunt (grandfather's sister)"], "certainty": "low"}], "duplicates": []}
 
 Event types: BIRTH, DEATH, MIGRATION, WEDDING, etc.
 Place types: CITY, COUNTRY, ADDRESS, LANDMARK, etc.
