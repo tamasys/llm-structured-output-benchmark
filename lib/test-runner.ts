@@ -130,13 +130,15 @@ async function withExponentialBackoff<T>(
  */
 async function runNonStrictAttempt<T>(
   model: ModelConfig,
-  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   schema: ZodSchema<T>,
-  config: TestConfig
+  config: TestConfig,
+  instructions?: string
 ): Promise<{ success: boolean; data?: T; raw: string; errors?: ValidationError[]; tokens?: { input: number; output: number } }> {
   const result = await withExponentialBackoff(() => generateText({
     model: model.model,
     messages,
+    ...(instructions ? { instructions } : {}),
     ...(model.isReasoningModel ? {} : { temperature: config.temperature }),
     ...(model.isReasoningModel ? {
       providerOptions: {
@@ -198,15 +200,17 @@ async function runNonStrictAttempt<T>(
  */
 async function runStrictAttempt<T>(
   model: ModelConfig,
-  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   schema: ZodSchema<T>,
-  config: TestConfig
+  config: TestConfig,
+  instructions?: string
 ): Promise<{ success: boolean; data?: T; raw: string; errors?: ValidationError[]; tokens?: { input: number; output: number } }> {
   try {
     const result = await withExponentialBackoff(() => generateObject({
       model: model.model,
       messages,
       schema,
+      ...(instructions ? { instructions } : {}),
       ...(model.isReasoningModel ? {} : { temperature: config.temperature }),
         ...(model.isReasoningModel ? {
         providerOptions: {
@@ -274,8 +278,7 @@ async function runScenario1(
     for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
       const attemptStartTime = Date.now();
 
-      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
         { role: 'user', content: task.context },
         { role: 'user', content: task.scenarios.oneShot.nonStrict.prompt },
       ];
@@ -293,7 +296,7 @@ async function runScenario1(
         });
       }
 
-      const promptText = messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+      const promptText = `[instructions] ${task.systemPrompt}\n\n` + messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
       onProgress?.({
         modelId: model.id,
         modelName: model.name,
@@ -313,7 +316,7 @@ async function runScenario1(
         },
       });
 
-      const result = await runNonStrictAttempt(model, messages, task.scenarios.oneShot.nonStrict.schema, config);
+      const result = await runNonStrictAttempt(model, messages, task.scenarios.oneShot.nonStrict.schema, config, task.systemPrompt);
       const attemptDuration = Date.now() - attemptStartTime;
 
       const attemptResult: AttemptResult = {
@@ -405,8 +408,7 @@ async function runScenario2(
     for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
       const attemptStartTime = Date.now();
 
-      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
         { role: 'user', content: task.context },
         { role: 'user', content: task.scenarios.oneShot.strict.prompt },
       ];
@@ -424,7 +426,7 @@ async function runScenario2(
         });
       }
 
-      const promptText = messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+      const promptText = `[instructions] ${task.systemPrompt}\n\n` + messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
       onProgress?.({
         modelId: model.id,
         modelName: model.name,
@@ -444,7 +446,7 @@ async function runScenario2(
         },
       });
 
-      const result = await runStrictAttempt(model, messages, task.scenarios.oneShot.strict.schema, config);
+      const result = await runStrictAttempt(model, messages, task.scenarios.oneShot.strict.schema, config, task.systemPrompt);
       const attemptDuration = Date.now() - attemptStartTime;
 
       const attemptResult: AttemptResult = {
@@ -537,15 +539,19 @@ async function runScenario3(
       // Step 1: Initial recommendation
       const step1: StepResult = { stepNumber: 1, stepName: 'Recommendation', success: false, attempts: [] };
       let step1Result: any = null;
-      let step1Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      let step1Messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+
         { role: 'user', content: task.context },
         { role: 'user', content: task.scenarios.sequential.nonStrict.step1.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = step1Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        const promptText = `[instructions] ${task.systemPrompt}
+
+` + step1Messages.map(m => `[${m.role}] ${m.content}`).join('
+
+');
 
         onProgress?.({
           modelId: model.id,
@@ -570,7 +576,7 @@ async function runScenario3(
           },
         });
 
-        const result = await runNonStrictAttempt(model, step1Messages, task.scenarios.sequential.nonStrict.step1.schema, config);
+        const result = await runNonStrictAttempt(model, step1Messages, task.scenarios.sequential.nonStrict.step1.schema, config, task.systemPrompt);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -630,8 +636,8 @@ async function runScenario3(
       // Step 2: Actor details
       const step2: StepResult = { stepNumber: 2, stepName: 'Details', success: false, attempts: [] };
       let step2Result: any = null;
-      let step2Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      let step2Messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+
         { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
         { role: 'user', content: task.scenarios.sequential.nonStrict.step2.prompt },
@@ -664,7 +670,7 @@ async function runScenario3(
           },
         });
 
-        const result = await runNonStrictAttempt(model, step2Messages, task.scenarios.sequential.nonStrict.step2.schema, config);
+        const result = await runNonStrictAttempt(model, step2Messages, task.scenarios.sequential.nonStrict.step2.schema, config, task.systemPrompt);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -724,8 +730,8 @@ async function runScenario3(
       // Step 3: AI config
       const step3: StepResult = { stepNumber: 3, stepName: 'AI Config', success: false, attempts: [] };
       let step3Result: any = null;
-      let step3Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      let step3Messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+
         { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
         { role: 'assistant', content: JSON.stringify(step2Result) },
@@ -759,7 +765,7 @@ async function runScenario3(
           },
         });
 
-        const result = await runNonStrictAttempt(model, step3Messages, task.scenarios.sequential.nonStrict.step3.schema, config);
+        const result = await runNonStrictAttempt(model, step3Messages, task.scenarios.sequential.nonStrict.step3.schema, config, task.systemPrompt);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -870,15 +876,19 @@ async function runScenario4(
       // Step 1: Initial recommendation
       const step1: StepResult = { stepNumber: 1, stepName: 'Recommendation', success: false, attempts: [] };
       let step1Result: any = null;
-      let step1Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      let step1Messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+
         { role: 'user', content: task.context },
         { role: 'user', content: task.scenarios.sequential.strict.step1.prompt },
       ];
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = step1Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        const promptText = `[instructions] ${task.systemPrompt}
+
+` + step1Messages.map(m => `[${m.role}] ${m.content}`).join('
+
+');
 
         onProgress?.({
           modelId: model.id,
@@ -903,7 +913,7 @@ async function runScenario4(
           },
         });
 
-        const result = await runStrictAttempt(model, step1Messages, task.scenarios.sequential.strict.step1.schema, config);
+        const result = await runStrictAttempt(model, step1Messages, task.scenarios.sequential.strict.step1.schema, config, task.systemPrompt);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -963,8 +973,8 @@ async function runScenario4(
       // Step 2: Actor details
       const step2: StepResult = { stepNumber: 2, stepName: 'Details', success: false, attempts: [] };
       let step2Result: any = null;
-      let step2Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      let step2Messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+
         { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
         { role: 'user', content: task.scenarios.sequential.strict.step2.prompt },
@@ -997,7 +1007,7 @@ async function runScenario4(
           },
         });
 
-        const result = await runStrictAttempt(model, step2Messages, task.scenarios.sequential.strict.step2.schema, config);
+        const result = await runStrictAttempt(model, step2Messages, task.scenarios.sequential.strict.step2.schema, config, task.systemPrompt);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
@@ -1057,8 +1067,8 @@ async function runScenario4(
       // Step 3: AI config
       const step3: StepResult = { stepNumber: 3, stepName: 'AI Config', success: false, attempts: [] };
       let step3Result: any = null;
-      let step3Messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-        { role: 'system', content: task.systemPrompt },
+      let step3Messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+
         { role: 'user', content: task.context },
         { role: 'assistant', content: JSON.stringify(step1Result) },
         { role: 'assistant', content: JSON.stringify(step2Result) },
@@ -1092,7 +1102,7 @@ async function runScenario4(
           },
         });
 
-        const result = await runStrictAttempt(model, step3Messages, task.scenarios.sequential.strict.step3.schema, config);
+        const result = await runStrictAttempt(model, step3Messages, task.scenarios.sequential.strict.step3.schema, config, task.systemPrompt);
 
         const attemptResult: AttemptResult = {
           attemptNumber: attempt,
