@@ -142,7 +142,7 @@ For every entity, include:
 
 For ambiguities:
 - issue: Explain what is ambiguous and why
-- possibilities: List the possible interpretations as strings. This can be possible identities for an unknown person ("John Smith (Daniel's grandfather)", "John Smith (Annie's husband)"), possible explanations for contradictory data ("William was older than 19 at death", "Age gap was 10 years, not 4"), or possible choices for an unclear relationship ("List Charles and Stephen as possible partners", "List Charles and Stephen as travelmates").
+- possibilities: List the possible interpretations as strings. This can be possible identities for an unknown person ("Thomas Baker (the neighbour's son)", "Thomas Baker (the cousin from Liverpool)"), possible explanations for contradictory data ("Sarah was older than 30 at marriage", "Marriage year was 1905, not 1900"), or possible choices for an unclear relationship ("List Arthur and James as probable partners", "List Arthur and James as business associates").
 
 Do not fabricate entities or relationships not grounded in the transcript. But DO connect dots that the transcript clearly implies. If something is ambiguous or contradictory, flag it in ambiguities rather than remaining silent.`;
 
