@@ -1,6 +1,19 @@
 {
   "runs": [
     {
+      "id": "d6e0af16-c08e-4b2f-9ea9-1c8688a55b21",
+      "timestamp": "2026-07-25T12:02:50.744Z",
+      "filename": "2026-07-25T12-02-50.744Z.json",
+      "summary": {
+        "models": [
+          "opencode-go-deepseek-v4-flash",
+          "opencode-go-mimo-v2.5"
+        ],
+        "totalTests": 16,
+        "successRate": 75
+      }
+    },
+    {
       "id": "6dbe7533-da5f-4384-a159-6cf2e2050ff5",
       "timestamp": "2025-11-29T16:49:26.618Z",
       "filename": "2025-11-29T16-49-26.618Z.json",
