@@ -8,6 +8,8 @@ import { runFullTestSuite, type TestProgress, type RunCompleteEvent } from '@/li
 import { calculateScenarioSummary } from '@/lib/storage';
 import { modelDefinitions, getModelDefinition, type ApiKeys } from '@/lib/models-factory';
 import { getTask, type Task } from '@/lib/task';
+import '@/lib/tasks/hiring';
+import '@/lib/tasks/family-history';
 import {
   activeRuns,
   type AttemptStatus,
