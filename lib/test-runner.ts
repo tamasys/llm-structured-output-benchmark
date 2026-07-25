@@ -547,11 +547,7 @@ async function runScenario3(
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = `[instructions] ${task.systemPrompt}
-
-` + step1Messages.map(m => `[${m.role}] ${m.content}`).join('
-
-');
+        const promptText = `[instructions] ${task.systemPrompt}\n\n` + step1Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
 
         onProgress?.({
           modelId: model.id,
@@ -645,7 +641,7 @@ async function runScenario3(
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = step2Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        const promptText = `[instructions] ${task.systemPrompt}\n\n` + step2Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
 
         onProgress?.({
           modelId: model.id,
@@ -740,7 +736,7 @@ async function runScenario3(
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = step3Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        const promptText = `[instructions] ${task.systemPrompt}\n\n` + step3Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
 
         onProgress?.({
           modelId: model.id,
@@ -884,11 +880,7 @@ async function runScenario4(
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = `[instructions] ${task.systemPrompt}
-
-` + step1Messages.map(m => `[${m.role}] ${m.content}`).join('
-
-');
+        const promptText = `[instructions] ${task.systemPrompt}\n\n` + step1Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
 
         onProgress?.({
           modelId: model.id,
@@ -982,7 +974,7 @@ async function runScenario4(
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = step2Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        const promptText = `[instructions] ${task.systemPrompt}\n\n` + step2Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
 
         onProgress?.({
           modelId: model.id,
@@ -1077,7 +1069,7 @@ async function runScenario4(
 
       for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
         const attemptStartTime = Date.now();
-        const promptText = step3Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
+        const promptText = `[instructions] ${task.systemPrompt}\n\n` + step3Messages.map(m => `[${m.role}] ${m.content}`).join('\n\n');
 
         onProgress?.({
           modelId: model.id,
