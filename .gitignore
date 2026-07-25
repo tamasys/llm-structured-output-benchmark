@@ -39,6 +39,9 @@ yarn-error.log*
 # benchmark results
 /data/results/
 
+# schema diff reference (user-managed)
+family-history-schema-diffs.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
