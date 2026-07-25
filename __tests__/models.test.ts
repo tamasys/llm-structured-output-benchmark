@@ -39,7 +39,7 @@ import {
 describe('Model Configuration', () => {
   describe('models array', () => {
     it('should contain expected number of models', () => {
-      expect(models).toHaveLength(19);
+      expect(models).toHaveLength(21);
     });
 
     it('should have models from all providers', () => {
@@ -58,7 +58,7 @@ describe('Model Configuration', () => {
       expect(providerCounts.ollama_cloud).toBe(2);
       expect(providerCounts.opencode_go).toBe(2);
       expect(providerCounts.opencode_zen).toBe(1);
-      expect(providerCounts.nvidia).toBe(2);
+      expect(providerCounts.nvidia).toBe(4);
     });
 
     it('should contain an LM Studio model', () => {
@@ -335,7 +335,7 @@ describe('Model Configuration', () => {
   describe('getModelsByProvider for NVIDIA', () => {
     it('should return models for NVIDIA', () => {
       const nvModels = getModelsByProvider('nvidia');
-      expect(nvModels).toHaveLength(2);
+      expect(nvModels).toHaveLength(4);
       nvModels.forEach((model) => {
         expect(model.provider).toBe('nvidia');
       });

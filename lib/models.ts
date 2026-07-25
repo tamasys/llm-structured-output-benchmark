@@ -239,6 +239,20 @@ const nvidiaModels: ModelConfig[] = [
     model: nvidia.chatModel('nvidia/llama-3.3-nemotron-super-49b-v1'),
     supportsStrictMode: true,
   },
+  {
+    id: 'nvidia-diffusiongemma',
+    name: 'DiffusionGemma 26B',
+    provider: 'nvidia',
+    model: nvidia.chatModel('google/diffusiongemma-26b-a4b-it'),
+    supportsStrictMode: true,
+  },
+  {
+    id: 'nvidia-gemma-4',
+    name: 'Gemma 4 31B',
+    provider: 'nvidia',
+    model: nvidia.chatModel('google/gemma-4-31b-it'),
+    supportsStrictMode: true,
+  },
 ];
 
 // All models

@@ -170,11 +170,13 @@ export const transcript = `[1] Sammy: Thanks for sitting down with me today. Cou
 [29] Margaret: Eleanor - we called her Ellie - she became a teacher. Married a man named David, David Cook. They moved to Canada, of all places. Toronto. That was in 1958.
 [30] Harold - he went to university. First in the family to go. He studied engineering at, uh, at Bristol, I think it was. Or was it Birmingham? No, Bristol. He works in aerospace.
 [31] Sammy: Any other family you remember? Aunts, uncles, cousins?
-[32] Margaret: My mother's sister, Aunt Gertrude, lived with us for a while after Uncle Arthur passed. He died in... 1933? Something like that. She stayed until she passed in the early sixties.
+[32] Margaret: And then there's my mother's sister, Aunt Gertrude, lived with us for a while after Uncle Arthur passed. He died in... 1933? Something like that. She stayed until she passed in the early sixties.
 [33] And there was my father's brother, Charles. Uncle Charles. He never married. He was a missionary in Africa.
-[34] We'd get letters from him and his travelmate Stephen - they were a bit more than travelmates from the sounds of it - maybe once or twice a year. I don't know what happened to them after my father died.
-[35] Sammy: Is there anything else you'd like to add?
-[36] Margaret: Just that... my brother William was the smart one, everyone said so. But he went to war and that was that. I often wonder what he would have made of everything.`;
+[34] Sammy: Oh yes mum mentioned I should ask about him! She said she visited him once when she was little.
+[35] Margaret: Ah, yes. We'd get letters from him and his travelmate Stephen - they were a bit more than travelmates from the sounds of it - maybe once or twice a year.
+[36] I remember him mentioning that Charlotte visited. I don't know what happened to them after my father died.
+[37] Sammy: Is there anything else you'd like to add?
+[38] Margaret: Just that... my brother William was the smart one, everyone said so. But he went to war and that was that. I often wonder what he would have made of everything.`;
 
 export const oneShotNonStrictPrompt = `Extract ALL entities from the transcript above into this exact JSON structure:
 
