@@ -4,11 +4,12 @@ import { getRetryPrompt } from '../prompts';
 
 const ambiguitySchema = z.object({
   type: z.enum(['geographic', 'onomastic', 'contextual', 'transcription']),
-  span: z.tuple([z.number(), z.number()]),
+  line_no: z.number(),
+  phrase: z.string(),
   original: z.string(),
-  suggestion: z.string(),
-  alternatives: z.array(z.string()).optional().default([]),
-  reasoning: z.string(),
+  issue: z.string(),
+  possibilities: z.array(z.string()).optional().default([]),
+  certainty: z.enum(['high', 'low', 'speculative', 'contradiction']),
 }).passthrough();
 
 const duplicateSchema = z.object({
@@ -76,7 +77,7 @@ const analysisSchema = z.object({
   }).passthrough()).optional().default([]),
   attributes: z.array(z.object({
     id: z.string(), name: z.string(),
-    type: z.enum(['condition', 'trait', 'skill', 'language']).optional(),
+    type: z.enum(['medical_condition', 'trait', 'skill', 'language']).optional(),
     description: z.string().optional(), line_no: z.number(), phrase: z.string()
   }).passthrough()).optional().default([]),
   duplicates: z.array(duplicateSchema).optional().default([]),
@@ -116,7 +117,9 @@ const sequentialStep3Schema = z.object({
 
 export const systemPrompt = `You are a family history analyst. Given an oral history transcript with [LINE_NUMBER] prefixes:
 
-Identify EVERY person, group, place, event, role, and attribute mentioned. Be thorough — do not skip any entity.
+Identify EVERY person, group, place, event, role, and attribute mentioned. Be thorough.
+
+Infer implied relationships from context. For example, if someone refers to another person in a way that implies a relationship (e.g. "my mother", "your brother", "mum"), connect them. If the exact relationship is unclear, flag it in ambiguities.
 
 Return ONLY valid JSON. No markdown, no commentary, no code fences.
 
@@ -127,17 +130,21 @@ Enum values for each field:
 - event.event_type: "BIRTH", "DEATH", "MIGRATION", "CONSTRUCTION", "WEDDING", "BUILT", "DESTROYED", "PURCHASED", "SOLD", "VISITED", "OTHER"
 - place.place_type: "COUNTRY", "STATE", "COUNTY", "CITY", "SUBURB", "ADDRESS", "LANDMARK"
 - role.type: "OCCUPATION", "EDUCATION", "VOLUNTEER", "CLERGY", "MILITARY"
-- attribute.type: "condition", "trait", "skill", "language"
+- attribute.type: "medical_condition" for diagnoses/injuries/illnesses, "trait" for personality descriptors, "skill" for learned abilities, "language" for languages spoken
 - date.precision: "DECADE", "YEAR", "MONTH", "DAY"
 - date.modifier: "CIRCA", "BEFORE", "AFTER"
-- ambiguity.type: "geographic", "onomastic", "contextual", "transcription"
+- ambiguity.type: "geographic" (place confusion), "onomastic" (name confusion), "contextual" (situational uncertainty), "transcription" (unclear wording)
+- ambiguity.certainty: "high" (nearly certain), "low" (best guess), "speculative" (possible but unconfirmed), "contradiction" (conflicting information)
 
 For every entity, include:
 - line_no: the line number from the [LINE_NUMBER] prefix where this entity is mentioned
 - phrase: the EXACT transcript text that mentions this entity, quoted verbatim
 
-Do not include entities that are not present in the transcript.
-Do not make up information not stated in the transcript.`;
+For ambiguities:
+- issue: Explain what is ambiguous and why
+- possibilities: List the possible interpretations as strings. This can be possible identities for an unknown person ("John Smith (Daniel's grandfather)", "John Smith (Annie's husband)"), possible explanations for contradictory data ("William was older than 19 at death", "Age gap was 10 years, not 4"), or possible choices for an unclear relationship ("List Charles and Stephen as possible partners", "List Charles and Stephen as travelmates").
+
+Do not fabricate entities or relationships not grounded in the transcript. But DO connect dots that the transcript clearly implies. If something is ambiguous or contradictory, flag it in ambiguities rather than remaining silent.`;
 
 export const transcript = `[1] Sammy: Thanks for sitting down with me today. Could we start with your full name and when you were born?
 [2] Margaret: Margaret, uh, Margaret Ellen Bishop. Born 1908, in Oxford. My father was a lecturer at the college.
@@ -183,44 +190,45 @@ export const oneShotNonStrictPrompt = `Extract ALL entities from the transcript 
 {
   "ambiguities": [
     {
-      "type": "geographic",
-      "span": [0, 0],
-      "original": "ambiguous text",
-      "suggestion": "best guess",
-      "alternatives": ["other possibility"],
-      "reasoning": "why this is ambiguous"
+      "type": "contextual",
+      "line_no": 35,
+      "phrase": "his travelmate Stephen - they were a bit more than travelmates",
+      "original": "Charles and Stephen's relationship",
+      "issue": "Margaret implies Charles and Stephen were partners, not just travelmates, but this is not explicitly stated.",
+      "possibilities": ["Charles and Stephen were romantic partners", "Charles and Stephen were close friends who travelled together"],
+      "certainty": "speculative"
     }
   ],
   "people": [
     {
       "id": "p1",
       "names": [
-        { "value": "John Smith", "type": "BIRTH", "line_no": 1, "phrase": "My name is John Smith" }
+        { "value": "John Smith", "type": "BIRTH", "line_no": 3, "phrase": "My name is John Smith" }
       ],
-      "birth": { "year": 1890, "precision": "YEAR", "line_no": 1, "phrase": "I was born in 1890" },
+      "birth": { "year": 1890, "precision": "YEAR", "line_no": 5, "phrase": "born in 1890" },
       "death": null,
       "sex": "M",
-      "parents": [{ "person_id": "p2", "line_no": 2, "phrase": "my father" }],
+      "parents": [{ "person_id": "p2", "line_no": 8, "phrase": "his father" }],
       "partners": [],
       "children": [],
       "member_of": [],
-      "located_at": [{ "place_id": "pl1", "line_no": 1, "phrase": "born in 1890 in Manchester" }]
+      "located_at": [{ "place_id": "pl1", "line_no": 7, "phrase": "lived in..." }]
     }
   ],
   "groups": [
-    { "id": "g1", "name": "Salvation Army", "group_type": "ORGANIZATION", "line_no": 5, "phrase": "joined the Salvation Army" }
+    { "id": "g1", "name": "Salvation Army", "group_type": "ORGANIZATION", "line_no": 208, "phrase": "parents in the Salvation Army" }
   ],
   "events": [
-    { "id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": { "year": 1920, "precision": "YEAR" }, "line_no": 3, "phrase": "married Mary Jones in 1920" }
+    { "id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": { "year": 1920, "precision": "YEAR" }, "line_no": 10, "phrase": "they got married" }
   ],
   "places": [
-    { "id": "pl1", "name": "Manchester", "place_type": "CITY", "line_no": 1, "phrase": "born in 1890 in Manchester" }
+    { "id": "pl1", "name": "London", "place_type": "CITY", "line_no": 177, "phrase": "evacuee from London" }
   ],
   "roles": [
-    { "id": "r1", "title": "Coal miner", "type": "OCCUPATION", "line_no": 2, "phrase": "worked as a coal miner" }
+    { "id": "r1", "title": "Coal miner", "type": "OCCUPATION", "line_no": 323, "phrase": "Dad was a coal miner" }
   ],
   "attributes": [
-    { "id": "a1", "name": "Lung disease", "type": "condition", "line_no": 8, "phrase": "died in 1932 from lung disease" }
+    { "id": "a1", "name": "Poor health", "type": "medical_condition", "line_no": 43, "phrase": "she had very poor health" }
   ],
   "duplicates": []
 }
@@ -230,25 +238,27 @@ Return ONLY the JSON object. No markdown, no backticks, no commentary.`;
 export const oneShotStrictPrompt = `Extract ALL genealogical entities from the transcript above.
 
 Your response MUST be a valid JSON object with these keys:
-- "ambiguities": array of ambiguous references (each with: type, span, original, suggestion, alternatives, reasoning)
+- "ambiguities": array of ambiguous references, contradictions, or unclear relationships (each with: type, line_no, phrase, original, issue, possibilities[], certainty)
 - "people": array of person objects (each with: id, names[], birth, death, sex, parents[], partners[], children[], member_of[], located_at[])
 - "groups": array of group objects (each with: id, name, group_type, line_no, phrase)
 - "events": array of event objects (each with: id, name, event_type, date, line_no, phrase)
 - "places": array of place objects (each with: id, name, place_type, line_no, phrase)
 - "roles": array of role objects (each with: id, title, type, line_no, phrase)
-- "attributes": array of attribute objects (each with: id, name, type, line_no, phrase)
+- "attributes": array of attribute objects (each with: id, name, type (medical_condition/trait/skill/language), line_no, phrase)
 - "duplicates": array of duplicate flag objects
 
-Include the line_no and exact phrase from the transcript for every entity. Use proper enum values as described in the system prompt. Do not return empty arrays for entity types that ARE present in the transcript.`;
+Include the line_no and exact phrase from the transcript for every entity. Use proper enum values as described in the system prompt. Do not return empty arrays for entity types that ARE present in the transcript.
+
+For ambiguities: issue describes what is uncertain, possibilities lists possible resolutions, certainty is one of "high", "low", "speculative", "contradiction".`;
 
 export const sequentialPrompts = {
   step1: {
     nonStrict: `Extract ALL people mentioned in the transcript — their names, dates of birth and death, sex, and gender.
 
 Return JSON like this exact example:
-{"people": [{"id": "p1", "names": [{"value": "John Smith", "type": "BIRTH", "line_no": 1, "phrase": "My name is John Smith"}], "birth": {"year": 1890, "precision": "YEAR", "line_no": 1, "phrase": "I was born in 1890"}, "death": null, "sex": "M"}]}
+{"people": [{"id": "p1", "names": [{"value": "John Smith", "type": "BIRTH", "line_no": 3, "phrase": "My name is John Smith"}], "birth": {"year": 1890, "precision": "YEAR", "line_no": 5, "phrase": "born in 1890"}, "death": null, "sex": "M"}]}
 
-Include EVERY person mentioned. Set death to null if the person is still alive (not stated as deceased). Use "CIRCA", "BEFORE", or "AFTER" as modifier when the date is approximate. Precision must be "DECADE", "YEAR", "MONTH", or "DAY".
+Include EVERY person mentioned, even implied ones (like Sammy, who may be a child/grandchild). Set death to null if the person is still alive. Use "CIRCA", "BEFORE", or "AFTER" as modifier when the date is approximate. Precision must be "DECADE", "YEAR", "MONTH", or "DAY".
 
 Return ONLY the JSON object. No markdown.`,
     strict: `Extract ALL people mentioned in the transcript — their names, dates of birth and death, and sex.
@@ -261,15 +271,17 @@ Your response MUST contain a "people" array. Each person has:
 - sex: "M", "F", or "X"
 - gender: optional string
 
-Include line_no and exact phrase for every field. Be thorough.`,
+Include line_no and exact phrase for every field. Be thorough — include implied people like Sammy.`,
   },
   step2: {
     nonStrict: `Identify the relationships between the people you found, their group memberships, and locations.
 
 Return JSON like this exact example:
-{"relationships": [{"person_id": "p1", "parents": [{"person_id": "p2", "line_no": 2, "phrase": "My father was Robert Smith"}], "partners": [], "children": [{"person_id": "p4", "line_no": 4, "phrase": "Thomas born 1921"}], "member_of": [{"group_id": "g1", "line_no": 5, "phrase": "joined the Salvation Army"}], "located_at": [{"place_id": "pl1", "line_no": 1, "phrase": "born in 1890 in Manchester"}]}], "groups": [{"id": "g1", "name": "Salvation Army", "group_type": "ORGANIZATION", "line_no": 5, "phrase": "joined the Salvation Army"}]}
+{"relationships": [{"person_id": "p1", "parents": [{"person_id": "p2", "line_no": 2, "phrase": "My father was Robert Smith"}], "partners": [{"person_id": "p3", "line_no": 10, "phrase": "married to..."}], "children": [], "member_of": [{"group_id": "g1", "line_no": 15, "phrase": "joined the..."}], "located_at": [{"place_id": "pl1", "line_no": 7, "phrase": "lived in..."}]}], "groups": [{"id": "g1", "name": "Salvation Army", "group_type": "ORGANIZATION", "line_no": 208, "phrase": "parents in the Salvation Army"}]}
 
 The person_id values must match the "id" values from step 1.
+Infer implied relationships (e.g. Sammy refers to "mum" on line 34, meaning Sammy is a descendant of Margaret).
+Flag uncertain relationships in ambiguities in step 3.
 Return ONLY the JSON. No markdown.`,
     strict: `Identify the relationships between the people you found, their group memberships, and locations.
 
@@ -277,18 +289,19 @@ Your response MUST contain:
 - "relationships": array of relationship objects (each with person_id, parents[], partners[], children[], member_of[], located_at[])
 - "groups": array of group objects (each with id, name, group_type, line_no, phrase)
 
-The person_id values must match the "id" values from step 1's output. Be thorough.`,
+The person_id values must match the "id" values from step 1's output. Infer implied relationships where the transcript clearly connects people.`,
   },
   step3: {
     nonStrict: `Identify events, places, roles, attributes, ambiguities, and duplicates from the transcript.
 
 Return JSON like this exact example:
-{"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 3, "phrase": "I married Mary Jones in 1920"}], "places": [{"id": "pl1", "name": "Manchester", "place_type": "CITY", "line_no": 1, "phrase": "born in 1890 in Manchester"}], "roles": [{"id": "r1", "title": "Coal miner", "type": "OCCUPATION", "line_no": 2, "phrase": "worked as a coal miner"}], "attributes": [{"id": "a1", "name": "Lung disease", "type": "condition", "line_no": 8, "phrase": "lung disease"}], "ambiguities": [], "duplicates": []}
+{"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 10, "phrase": "they got married"}], "places": [{"id": "pl1", "name": "London", "place_type": "CITY", "line_no": 177, "phrase": "evacuee from London"}], "roles": [{"id": "r1", "title": "Coal miner", "type": "OCCUPATION", "line_no": 323, "phrase": "Dad was a coal miner"}], "attributes": [{"id": "a1", "name": "Poor health", "type": "medical_condition", "line_no": 43, "phrase": "she had very poor health"}], "ambiguities": [{"type": "contextual", "line_no": 35, "phrase": "more than travelmates", "original": "Charles and Stephen", "issue": "Implied but not explicitly stated", "possibilities": ["Romantic partners", "Close friends"], "certainty": "speculative"}], "duplicates": []}
 
 Event types: BIRTH, DEATH, MIGRATION, WEDDING, etc.
 Place types: CITY, COUNTRY, ADDRESS, LANDMARK, etc.
 Role types: OCCUPATION, EDUCATION, MILITARY, etc.
-Attribute types: condition, trait, skill, language
+Attribute types: medical_condition, trait, skill, language
+For ambiguities: possibilities lists possible explanations; certainty is high/low/speculative/contradiction
 Return ONLY the JSON. No markdown.`,
     strict: `Identify events, places, roles, attributes, ambiguities, and duplicates from the transcript.
 
@@ -296,11 +309,11 @@ Your response MUST contain:
 - "events": array of event objects (each with id, name, event_type, date, line_no, phrase)
 - "places": array of place objects (each with id, name, place_type, line_no, phrase)
 - "roles": array of role objects (each with id, title, type, line_no, phrase)
-- "attributes": array of attribute objects (each with id, name, type, line_no, phrase)
-- "ambiguities": array of ambiguity objects (each with type, span, original, suggestion, alternatives, reasoning)
+- "attributes": array of attribute objects (each with id, name, type (medical_condition/trait/skill/language), line_no, phrase)
+- "ambiguities": array of ambiguity objects (each with type, line_no, phrase, original, issue, possibilities[], certainty)
 - "duplicates": array of duplicate flag objects
 
-Use proper enum values from the system prompt. Include line_no and exact phrase for every entity. Be thorough.`,
+Use proper enum values from the system prompt. Include line_no and exact phrase for every entity. For ambiguities, issue describes what is uncertain, possibilities lists possible interpretations, certainty is one of "high"/"low"/"speculative"/"contradiction".`,
   },
 };
 
