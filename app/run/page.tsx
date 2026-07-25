@@ -11,6 +11,9 @@ import { modelPricing } from '@/lib/pricing';
 import { useApiKeys, type ApiKeys } from '@/lib/api-keys-context';
 import { listTasks } from '@/lib/task';
 import { providers } from '@/lib/models';
+// Side-effect imports to trigger task auto-registration
+import '@/lib/tasks/hiring';
+import '@/lib/tasks/family-history';
 import type { ScenarioResult, RunResult } from '@/lib/storage';
 
 interface Model {
