@@ -322,12 +322,29 @@ export function mergeSequentialAnalysis(
     ambiguities?: Array<Record<string, unknown>>;
   };
 
+  const relationshipsByPersonId = new Map<string, Record<string, unknown>>();
+  if (p3?.relationships) {
+    for (const rel of p3.relationships) {
+      const pid = rel.person_id as string;
+      relationshipsByPersonId.set(pid, rel);
+    }
+  }
+
+  const mergedPeople = (p1?.people ?? []).map((person) => {
+    const pid = person.id as string;
+    const relData = relationshipsByPersonId.get(pid);
+    if (relData) {
+      const { person_id, ...rest } = relData;
+      return { ...person, ...rest };
+    }
+    return person;
+  });
+
   return {
-    people: p1?.people ?? [],
+    people: mergedPeople,
     groups: p2?.groups ?? [],
     events: p2?.events ?? [],
     places: p2?.places ?? [],
-    relationships: p3?.relationships ?? [],
     ambiguities: p3?.ambiguities ?? [],
   };
 }
