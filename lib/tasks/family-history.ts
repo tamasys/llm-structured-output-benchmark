@@ -72,10 +72,36 @@ const analysisSchema = z.object({
     place_type: z.enum(['CONTINENT', 'COUNTRY', 'STATE', 'COUNTY', 'CITY', 'SUBURB', 'ADDRESS', 'LANDMARK']).optional(),
     line_no: z.number(), phrase: z.string()
   }).passthrough()).optional().default([]),
-}).superRefine((data, ctx) => {
-  const personIds = new Set((data.people ?? []).map(p => p.id));
-  const groupIds = new Set((data.groups ?? []).map(g => g.id));
-  const placeIds = new Set((data.places ?? []).map(p => p.id));
+}).strict().superRefine((data, ctx) => {
+  const personIds = new Set<string>();
+  const groupIds = new Set<string>();
+  const placeIds = new Set<string>();
+  const eventIds = new Set<string>();
+
+  for (const p of data.people ?? []) {
+    if (personIds.has(p.id)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['people'], message: `Duplicate person ID "${p.id}"` });
+    }
+    personIds.add(p.id);
+  }
+  for (const g of data.groups ?? []) {
+    if (groupIds.has(g.id)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['groups'], message: `Duplicate group ID "${g.id}"` });
+    }
+    groupIds.add(g.id);
+  }
+  for (const e of data.events ?? []) {
+    if (eventIds.has(e.id)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['events'], message: `Duplicate event ID "${e.id}"` });
+    }
+    eventIds.add(e.id);
+  }
+  for (const p of data.places ?? []) {
+    if (placeIds.has(p.id)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['places'], message: `Duplicate place ID "${p.id}"` });
+    }
+    placeIds.add(p.id);
+  }
 
   for (const person of data.people ?? []) {
     for (const ref of ['parents', 'partners', 'children'] as const) {
@@ -114,8 +140,8 @@ const sequentialStep1Schema = z.object({
   people: z.array(z.object({
     id: z.string(),
     names: z.array(z.object({ value: z.string(), type: z.string().optional(), line_no: z.number(), phrase: z.string() })).optional().default([]),
-    birth: z.object({ year: z.number(), precision: z.string(), line_no: z.number(), phrase: z.string() }).passthrough().optional().nullable(),
-    death: z.object({ year: z.number(), precision: z.string(), line_no: z.number(), phrase: z.string() }).passthrough().optional().nullable(),
+    birth: z.object({ year: z.number(), month: z.number().optional(), day: z.number().optional(), modifier: z.string().optional(), precision: z.string(), line_no: z.number(), phrase: z.string() }).passthrough().optional().nullable(),
+    death: z.object({ year: z.number(), month: z.number().optional(), day: z.number().optional(), modifier: z.string().optional(), precision: z.string(), line_no: z.number(), phrase: z.string() }).passthrough().optional().nullable(),
     sex: z.string().optional(),
     gender: z.string().optional(),
     roles: z.array(z.object({ title: z.string(), type: z.string().optional(), line_no: z.number(), phrase: z.string() }).passthrough()).optional().default([]),
@@ -124,7 +150,7 @@ const sequentialStep1Schema = z.object({
 });
 
 const sequentialStep2Schema = z.object({
-  events: z.array(z.object({ id: z.string(), name: z.string(), event_type: z.string().optional(), date: z.object({ year: z.number(), precision: z.string() }).passthrough().optional().nullable(), line_no: z.number(), phrase: z.string() }).passthrough()).optional().default([]),
+  events: z.array(z.object({ id: z.string(), name: z.string(), event_type: z.string().optional(), date: z.object({ year: z.number(), month: z.number().optional(), day: z.number().optional(), modifier: z.string().optional(), precision: z.string() }).passthrough().optional().nullable(), line_no: z.number(), phrase: z.string() }).passthrough()).optional().default([]),
   places: z.array(z.object({ id: z.string(), name: z.string(), place_type: z.string().optional(), line_no: z.number(), phrase: z.string() }).passthrough()).optional().default([]),
   groups: z.array(z.object({ id: z.string(), name: z.string(), group_type: z.string().optional(), line_no: z.number(), phrase: z.string() }).passthrough()).optional().default([]),
 });
@@ -155,7 +181,7 @@ Enum values for each field:
 - name.type: "BIRTH", "MARRIED", "NICKNAME", "RELIGIOUS", "PROFESSIONAL", "ALTER"
 - group.group_type: "FAMILY", "HOUSEHOLD", "FRIENDSHIP", "CREW", "ORGANISATION", "EMPLOYER"
 - event.event_type: "BIRTH", "DEATH", "MIGRATION", "CONSTRUCTION", "WEDDING", "BUILT", "DESTROYED", "PURCHASED", "SOLD", "VISITED", "OTHER"
-- place.place_type: "COUNTRY", "STATE", "COUNTY", "CITY", "SUBURB", "ADDRESS", "LANDMARK"
+- place.place_type: "CONTINENT", "COUNTRY", "STATE", "COUNTY", "CITY", "SUBURB", "ADDRESS", "LANDMARK"
 - role.type: "OCCUPATION", "EDUCATION", "VOLUNTEER", "CLERGY", "MILITARY"
 - attribute.type: "medical_condition" for diagnoses/injuries/illnesses, "trait" for personality descriptors, "skill" for learned abilities, "language" for languages spoken
 - date.precision: "DECADE", "YEAR", "MONTH", "DAY"
@@ -272,7 +298,7 @@ Your response MUST be a valid JSON object with these keys:
 - "events": array of event objects (each with: id, name, event_type, date, line_no, phrase)
 - "places": array of place objects (each with: id, name, place_type, line_no, phrase)
 
-Include the line_no and exact phrase from the transcript for every entity. Use proper enum values as described in the system prompt. Do not return empty arrays for entity types that ARE present in the transcript.
+Include the line_no and exact phrase from the transcript for every entity. Use proper enum values as described in the system prompt.
 
 For ambiguities: issue describes what is uncertain, possibilities lists possible resolutions, certainty is one of "high", "low", "speculative", "contradiction".`;
 
@@ -306,8 +332,8 @@ Include line_no and exact phrase for every field. Be thorough — include implie
 Return JSON like this exact example:
 {"events": [{"id": "e1", "name": "Wedding", "event_type": "WEDDING", "date": {"year": 1920, "precision": "YEAR"}, "line_no": 99, "phrase": "married in 1920"}], "places": [{"id": "pl1", "name": "Dover", "place_type": "CITY", "line_no": 99, "phrase": "moved to Dover"}], "groups": [{"id": "g1", "name": "Village Council", "group_type": "ORGANIZATION", "line_no": 99, "phrase": "served on the village council"}]}
 
-Event types: BIRTH, DEATH, MIGRATION, WEDDING, etc.
-Place types: CITY, COUNTRY, ADDRESS, LANDMARK, etc.
+Event types: BIRTH, DEATH, MIGRATION, CONSTRUCTION, WEDDING, BUILT, DESTROYED, PURCHASED, SOLD, VISITED, OTHER
+Place types: CONTINENT, COUNTRY, STATE, COUNTY, CITY, SUBURB, ADDRESS, LANDMARK
 Return ONLY the JSON. No markdown.`,
     strict: `Identify the events, places, groups, and locations.
 
