@@ -72,6 +72,42 @@ const analysisSchema = z.object({
     place_type: z.enum(['CONTINENT', 'COUNTRY', 'STATE', 'COUNTY', 'CITY', 'SUBURB', 'ADDRESS', 'LANDMARK']).optional(),
     line_no: z.number(), phrase: z.string()
   }).passthrough()).optional().default([]),
+}).superRefine((data, ctx) => {
+  const personIds = new Set((data.people ?? []).map(p => p.id));
+  const groupIds = new Set((data.groups ?? []).map(g => g.id));
+  const placeIds = new Set((data.places ?? []).map(p => p.id));
+
+  for (const person of data.people ?? []) {
+    for (const ref of ['parents', 'partners', 'children'] as const) {
+      for (const rel of (person[ref] ?? [])) {
+        if (!personIds.has(rel.person_id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['people', person.id, ref],
+            message: `References unknown person ID "${rel.person_id}". Known IDs: ${[...personIds].join(', ') || 'none'}`,
+          });
+        }
+      }
+    }
+    for (const m of (person.member_of ?? [])) {
+      if (!groupIds.has(m.group_id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['people', person.id, 'member_of'],
+          message: `References unknown group ID "${m.group_id}". Known group IDs: ${[...groupIds].join(', ') || 'none'}`,
+        });
+      }
+    }
+    for (const l of (person.located_at ?? [])) {
+      if (!placeIds.has(l.place_id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['people', person.id, 'located_at'],
+          message: `References unknown place ID "${l.place_id}". Known place IDs: ${[...placeIds].join(', ') || 'none'}`,
+        });
+      }
+    }
+  }
 });
 
 const sequentialStep1Schema = z.object({
@@ -315,39 +351,10 @@ export function mergeSequentialAnalysis(
     ambiguities?: Array<Record<string, unknown>>;
   };
 
-  const peopleById = new Map<string, Record<string, unknown>>();
-  for (const person of (p1?.people ?? [])) {
-    peopleById.set(person.id as string, person);
-  }
-
-  const groupsById = new Set((p2?.groups ?? []).map(g => g.id as string));
-  const placesById = new Set((p2?.places ?? []).map(p => p.id as string));
-
   const relationshipsByPersonId = new Map<string, Record<string, unknown>>();
   if (p3?.relationships) {
     for (const rel of p3.relationships) {
-      const pid = rel.person_id as string;
-      if (!peopleById.has(pid)) {
-        throw new Error(`Relationship references unknown person_id "${pid}" — not found in step 1 output`);
-      }
-      for (const ref of ['parents', 'partners', 'children'] as const) {
-        for (const r of (rel[ref] as Array<Record<string, unknown>> ?? [])) {
-          if (!peopleById.has(r.person_id as string)) {
-            throw new Error(`Relationship for "${pid}" references unknown person_id "${r.person_id}" in ${ref} — not found in step 1 output`);
-          }
-        }
-      }
-      for (const m of (rel.member_of as Array<Record<string, unknown>> ?? [])) {
-        if (!groupsById.has(m.group_id as string)) {
-          throw new Error(`Relationship for "${pid}" references unknown group_id "${m.group_id}" — not found in step 2 output`);
-        }
-      }
-      for (const l of (rel.located_at as Array<Record<string, unknown>> ?? [])) {
-        if (!placesById.has(l.place_id as string)) {
-          throw new Error(`Relationship for "${pid}" references unknown place_id "${l.place_id}" — not found in step 2 output`);
-        }
-      }
-      relationshipsByPersonId.set(pid, rel);
+      relationshipsByPersonId.set(rel.person_id as string, rel);
     }
   }
 
