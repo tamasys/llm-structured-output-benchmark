@@ -1,6 +1,19 @@
 {
   "runs": [
     {
+      "id": "e31e1886-351d-4b9e-8acb-2f49316c501a",
+      "timestamp": "2026-07-25T14:48:06.862Z",
+      "filename": "2026-07-25T14-48-06.862Z.json",
+      "summary": {
+        "models": [
+          "nvidia-diffusiongemma",
+          "nvidia-gemma-4"
+        ],
+        "totalTests": 8,
+        "successRate": 37.5
+      }
+    },
+    {
       "id": "d6e0af16-c08e-4b2f-9ea9-1c8688a55b21",
       "timestamp": "2026-07-25T12:02:50.744Z",
       "filename": "2026-07-25T12-02-50.744Z.json",

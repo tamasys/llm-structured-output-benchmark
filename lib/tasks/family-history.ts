@@ -53,7 +53,7 @@ const analysisSchema = z.object({
   people: z.array(personSchema).optional().default([]),
   groups: z.array(z.object({
     id: z.string(), name: z.string(),
-    group_type: z.enum(['FAMILY', 'HOUSEHOLD', 'FRIENDSHIP', 'CREW', 'ORGANIZATION', 'EMPLOYER']).optional(),
+    group_type: z.enum(['FAMILY', 'HOUSEHOLD', 'FRIENDSHIP', 'CREW', 'ORGANISATION', 'EMPLOYER']).optional(),
     line_no: z.number(), phrase: z.string()
   }).passthrough()).optional().default([]),
   events: z.array(z.object({
@@ -68,8 +68,16 @@ const analysisSchema = z.object({
   }).passthrough()).optional().default([]),
   places: z.array(z.object({
     id: z.string(), name: z.string(),
-    place_type: z.enum(['COUNTRY', 'STATE', 'COUNTY', 'CITY', 'SUBURB', 'ADDRESS', 'LANDMARK']).optional(),
+    place_type: z.enum(['CONTINENT', 'COUNTRY', 'STATE', 'COUNTY', 'CITY', 'SUBURB', 'ADDRESS', 'LANDMARK']).optional(),
     line_no: z.number(), phrase: z.string()
+  }).passthrough()).optional().default([]),
+  relationships: z.array(z.object({
+    person_id: z.string(),
+    parents: z.array(z.object({ person_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
+    partners: z.array(z.object({ person_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
+    children: z.array(z.object({ person_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
+    member_of: z.array(z.object({ group_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
+    located_at: z.array(z.object({ place_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
   }).passthrough()).optional().default([]),
 });
 
@@ -206,8 +214,8 @@ export const oneShotNonStrictPrompt = `Extract ALL entities from the transcript 
         { "name": "Skilled musician", "type": "trait", "line_no": 99, "phrase": "could sit at the piano and play any tune we asked for" }
       ],
       "roles": [
-        { "title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a schoolteacher for thirty years", "groups": ["g2"]},
-        { "title": "Nursing student", "type": "EDUCATION", "line_no": 99, "phrase": "went to nursing school in... Berlin, I think", "places": ["pl3"]}
+        { "title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a schoolteacher for thirty years"},
+        { "title": "Nursing student", "type": "EDUCATION", "line_no": 99, "phrase": "went to nursing school in... Berlin, I think"}
       ]
     }
   ],
@@ -244,7 +252,7 @@ export const sequentialPrompts = {
     nonStrict: `Extract ALL people mentioned in the transcript — their names, dates of birth and death, sex, gender, roles, and attributes. Other details will be added in subsequent steps.
 
 Return JSON like this exact example:
-{"people": [{"id": "p1", "names": [{"value": "John Smith", "type": "BIRTH", "line_no": 99, "phrase": "my name is John Smith"}], "birth": {"year": 1890, "precision": "YEAR", "line_no": 99, "phrase": "I was born in 1890"}, "death": null, "sex": "M"} "roles": [{"title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a teacher"}], "attributes": [{"name": "Arthritis", "type": "medical_condition", "line_no": 99, "phrase": "suffered from arthritis"}]]}
+{"people": [{"id": "p1", "names": [{"value": "John Smith", "type": "BIRTH", "line_no": 99, "phrase": "my name is John Smith"}], "birth": {"year": 1890, "precision": "YEAR", "line_no": 99, "phrase": "I was born in 1890"}, "death": null, "sex": "M", "roles": [{"title": "Schoolteacher", "type": "OCCUPATION", "line_no": 99, "phrase": "worked as a teacher"}], "attributes": [{"name": "Arthritis", "type": "medical_condition", "line_no": 99, "phrase": "suffered from arthritis"}]}]}
 
 Include EVERY person mentioned, even implied ones (like Sammy, who may be a child/grandchild). Set death to null if the person is still alive. Use "CIRCA", "BEFORE", or "AFTER" as modifier when the date is approximate. Precision must be "DECADE", "YEAR", "MONTH", or "DAY".
 
@@ -277,9 +285,7 @@ Return ONLY the JSON. No markdown.`,
 Your response MUST contain:
 - "events": array of event objects (each with id, name, event_type, date, line_no, phrase)
 - "places": array of place objects (each with id, name, place_type, line_no, phrase)
-- "groups": array of group objects (each with id, name, group_type, line_no, phrase)
-
-The person_id values must match the "id" values from step 1's output. Infer implied relationships where the transcript clearly connects people.`,
+- "groups": array of group objects (each with id, name, group_type, line_no, phrase)`,
   },
   step3: {
     nonStrict: `Identify relationships between the entities you found and ambiguities from the transcript.
@@ -307,36 +313,21 @@ export function mergeSequentialAnalysis(
   part3: unknown
 ): unknown {
   const p1 = part1 as { people?: Array<Record<string, unknown>> };
-  const p2 = part2 as { relationships?: Array<Record<string, unknown>>; groups?: Array<Record<string, unknown>> };
-  const p3 = part3 as {
+  const p2 = part2 as { 
     events?: Array<Record<string, unknown>>;
     places?: Array<Record<string, unknown>>;
+    groups?: Array<Record<string, unknown>> };
+  const p3 = part3 as {
+    relationships?: Array<Record<string, unknown>>;
     ambiguities?: Array<Record<string, unknown>>;
   };
 
-  const relationshipsByPersonId = new Map<string, Record<string, unknown>>();
-  if (p2?.relationships) {
-    for (const rel of p2.relationships) {
-      const pid = rel.person_id as string;
-      relationshipsByPersonId.set(pid, rel);
-    }
-  }
-
-  const mergedPeople = (p1?.people ?? []).map((person) => {
-    const pid = person.id as string;
-    const relData = relationshipsByPersonId.get(pid);
-    if (relData) {
-      const { person_id, ...rest } = relData;
-      return { ...person, ...rest };
-    }
-    return person;
-  });
-
   return {
-    people: mergedPeople,
+    people: p1?.people ?? [],
     groups: p2?.groups ?? [],
-    events: p3?.events ?? [],
-    places: p3?.places ?? [],
+    events: p2?.events ?? [],
+    places: p2?.places ?? [],
+    relationships: p3?.relationships ?? [],
     ambiguities: p3?.ambiguities ?? [],
   };
 }
