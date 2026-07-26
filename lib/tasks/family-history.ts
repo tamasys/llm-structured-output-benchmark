@@ -48,6 +48,7 @@ const personSchema = z.object({
   }).passthrough()).optional().default([]),
 }).passthrough();
 
+// Relationships in one-shot are embedded directly in the personSchema
 const analysisSchema = z.object({
   ambiguities: z.array(ambiguitySchema).optional().default([]),
   people: z.array(personSchema).optional().default([]),
@@ -92,6 +93,7 @@ const sequentialStep2Schema = z.object({
   groups: z.array(z.object({ id: z.string(), name: z.string(), group_type: z.string().optional(), line_no: z.number(), phrase: z.string() }).passthrough()).optional().default([]),
 });
 
+// Relationships in sequential are generated separately then merged with code into personSchema
 const sequentialStep3Schema = z.object({
   relationships: z.array(z.object({
     person_id: z.string(),
@@ -313,10 +315,38 @@ export function mergeSequentialAnalysis(
     ambiguities?: Array<Record<string, unknown>>;
   };
 
+  const peopleById = new Map<string, Record<string, unknown>>();
+  for (const person of (p1?.people ?? [])) {
+    peopleById.set(person.id as string, person);
+  }
+
+  const groupsById = new Set((p2?.groups ?? []).map(g => g.id as string));
+  const placesById = new Set((p2?.places ?? []).map(p => p.id as string));
+
   const relationshipsByPersonId = new Map<string, Record<string, unknown>>();
   if (p3?.relationships) {
     for (const rel of p3.relationships) {
       const pid = rel.person_id as string;
+      if (!peopleById.has(pid)) {
+        throw new Error(`Relationship references unknown person_id "${pid}" — not found in step 1 output`);
+      }
+      for (const ref of ['parents', 'partners', 'children'] as const) {
+        for (const r of (rel[ref] as Array<Record<string, unknown>> ?? [])) {
+          if (!peopleById.has(r.person_id as string)) {
+            throw new Error(`Relationship for "${pid}" references unknown person_id "${r.person_id}" in ${ref} — not found in step 1 output`);
+          }
+        }
+      }
+      for (const m of (rel.member_of as Array<Record<string, unknown>> ?? [])) {
+        if (!groupsById.has(m.group_id as string)) {
+          throw new Error(`Relationship for "${pid}" references unknown group_id "${m.group_id}" — not found in step 2 output`);
+        }
+      }
+      for (const l of (rel.located_at as Array<Record<string, unknown>> ?? [])) {
+        if (!placesById.has(l.place_id as string)) {
+          throw new Error(`Relationship for "${pid}" references unknown place_id "${l.place_id}" — not found in step 2 output`);
+        }
+      }
       relationshipsByPersonId.set(pid, rel);
     }
   }
