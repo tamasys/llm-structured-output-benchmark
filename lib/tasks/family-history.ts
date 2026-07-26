@@ -71,14 +71,6 @@ const analysisSchema = z.object({
     place_type: z.enum(['CONTINENT', 'COUNTRY', 'STATE', 'COUNTY', 'CITY', 'SUBURB', 'ADDRESS', 'LANDMARK']).optional(),
     line_no: z.number(), phrase: z.string()
   }).passthrough()).optional().default([]),
-  relationships: z.array(z.object({
-    person_id: z.string(),
-    parents: z.array(z.object({ person_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
-    partners: z.array(z.object({ person_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
-    children: z.array(z.object({ person_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
-    member_of: z.array(z.object({ group_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
-    located_at: z.array(z.object({ place_id: z.string(), line_no: z.number(), phrase: z.string() })).optional().default([]),
-  }).passthrough()).optional().default([]),
 });
 
 const sequentialStep1Schema = z.object({
@@ -241,7 +233,6 @@ Your response MUST be a valid JSON object with these keys:
 - "groups": array of group objects (each with: id, name, group_type, line_no, phrase)
 - "events": array of event objects (each with: id, name, event_type, date, line_no, phrase)
 - "places": array of place objects (each with: id, name, place_type, line_no, phrase)
-- "relationships": array of relationships between entities
 
 Include the line_no and exact phrase from the transcript for every entity. Use proper enum values as described in the system prompt. Do not return empty arrays for entity types that ARE present in the transcript.
 
